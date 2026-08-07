@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Resolve the real installation path, then dispatch.
+
+set -euo pipefail
+
+_harto_resolve() {
+  local path="$1"
+  local dir target
+
+  while [ -L "$path" ]; do
+    dir=$(cd "$(dirname "$path")" && pwd)
+    target=$(readlink "$path")
+    case "$target" in
+      /*) path="$target" ;;
+      *) path="$dir/$target" ;;
+    esac
+  done
+
+  dir=$(cd "$(dirname "$path")" && pwd)
+  printf '%s/%s\n' "$dir" "$(basename "$path")"
+}
+
+_harto_self=$(_harto_resolve "$0")
+_harto_bin=$(dirname "$_harto_self")
+HARTO_ROOT=$(cd "$_harto_bin/.." && pwd)
+HARTO_PROG=$(basename "$0")
+export HARTO_ROOT HARTO_PROG
+
+# shellcheck source=../core/cli.sh
+. "$HARTO_ROOT/core/cli.sh"
+harto_cli_main "$@"
