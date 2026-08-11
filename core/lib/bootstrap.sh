@@ -9,3 +9,5 @@
 . "$HARTO_LIB/utils.sh"
 # shellcheck source=config.sh
 . "$HARTO_LIB/config.sh"
+# shellcheck source=dependencies.sh
+. "$HARTO_LIB/dependencies.sh"
