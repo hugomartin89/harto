@@ -75,5 +75,10 @@ harto_cli_main() {
     return
   fi
 
+  if harto_plugin_dir "$cmd" >/dev/null 2>&1; then
+    harto_plugin_dispatch "$cmd" "$@"
+    return
+  fi
+
   harto_die "unknown command: ${cmd}" 2
 }
