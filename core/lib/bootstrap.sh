@@ -13,3 +13,5 @@
 . "$HARTO_LIB/dependencies.sh"
 # shellcheck source=plugin-manager.sh
 . "$HARTO_LIB/plugin-manager.sh"
+# shellcheck source=upgrade.sh
+. "$HARTO_LIB/upgrade.sh"
