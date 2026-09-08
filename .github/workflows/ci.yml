@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install development tools
+        run: brew install yq shellcheck bats-core
+      - name: Lint
+        run: scripts/lint.sh
+      - name: Test
+        run: scripts/test.sh
+      - name: Conventional commits
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${GITHUB_BASE_REF}"
+          scripts/check-commits.sh --range "origin/${GITHUB_BASE_REF}..HEAD"
