@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'dnsmasq %s\n' "$*" >> "$HARTO_STUB_LOG"
+if [ "${1:-}" = "--version" ] || [ "${1:-}" = "-v" ]; then
+  printf 'Dnsmasq version 2.90\n'
+fi
+exit 0

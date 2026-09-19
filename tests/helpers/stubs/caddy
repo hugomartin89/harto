@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'caddy %s\n' "$*" >> "$HARTO_STUB_LOG"
+cmd="${1:-}"
+shift || true
+case "$cmd" in
+  version)
+    printf 'v2.8.4\n'
+    ;;
+  validate)
+    exit "${HARTO_STUB_CADDY_VALIDATE:-0}"
+    ;;
+  reload)
+    exit "${HARTO_STUB_CADDY_RELOAD:-0}"
+    ;;
+  *)
+    exit 0
+    ;;
+esac

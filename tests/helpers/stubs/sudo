@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'sudo %s\n' "$*" >> "$HARTO_STUB_LOG"
+if [ -z "${HARTO_STUB_FAKE_ROOT:-}" ]; then
+  exit 0
+fi
+cmd="$1"
+shift
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    /etc/*) args+=("${HARTO_STUB_FAKE_ROOT}${arg}") ;;
+    *) args+=("$arg") ;;
+  esac
+done
+"$cmd" "${args[@]}"

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'curl %s\n' "$*" >> "$HARTO_STUB_LOG"
+joined="$*"
+case "$joined" in
+  *"--resolve"*)
+    exit "${HARTO_STUB_CURL_RESOLVE:-1}"
+    ;;
+  *"/config/"*)
+    printf '%s\n' "${HARTO_STUB_ADMIN_BODY:-{\}}"
+    exit "${HARTO_STUB_CURL_ADMIN:-0}"
+    ;;
+  *)
+    exit "${HARTO_STUB_CURL_TARGET:-1}"
+    ;;
+esac

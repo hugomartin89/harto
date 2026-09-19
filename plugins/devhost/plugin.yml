@@ -1,0 +1,67 @@
+name: devhost
+version: 0.1.0
+description: Local domains, HTTPS, and reverse-proxy routes
+harto:
+  min: "0.3.0"
+  max: "0.3.0"
+platforms:
+  - darwin
+dependencies:
+  - name: caddy
+    command: caddy
+    min_version: "2.6.0"
+    required: true
+    install_hint: brew install caddy
+    install_hint_url: https://caddyserver.com/docs/install
+  - name: dnsmasq
+    command: dnsmasq
+    required: true
+    install_hint: brew install dnsmasq
+    install_hint_url: https://thekelleys.org.uk/dnsmasq/doc.html
+  - name: mkcert
+    command: mkcert
+    required: false
+    install_hint: brew install mkcert
+    install_hint_url: https://github.com/FiloSottile/mkcert
+  - name: colima
+    command: colima
+    required: false
+    install_hint: brew install colima
+    install_hint_url: https://github.com/abiosoft/colima
+commands:
+  - name: setup
+    description: Choose a base domain, proxy, DNS, and HTTPS
+    entrypoint: commands/setup.sh
+  - name: up
+    description: Start the proxy and DNS services
+    entrypoint: commands/up.sh
+  - name: down
+    description: Stop the proxy and DNS services
+    entrypoint: commands/down.sh
+  - name: add
+    description: Add or update a route
+    entrypoint: commands/add.sh
+  - name: remove
+    description: Remove a route
+    entrypoint: commands/remove.sh
+  - name: list
+    description: List routes and whether each one is applied and responding
+    entrypoint: commands/list.sh
+  - name: status
+    description: Show the proxy, DNS, and service state
+    entrypoint: commands/status.sh
+  - name: logs
+    description: Show proxy logs
+    entrypoint: commands/logs.sh
+  - name: doctor
+    description: Report devhost health without changing the system
+    entrypoint: commands/doctor.sh
+  - name: config
+    description: Show or update devhost configuration
+    entrypoint: commands/config.sh
+hooks:
+  install: hooks/install.sh
+  configure: commands/setup.sh
+  doctor: commands/doctor.sh
+  upgrade: hooks/upgrade.sh
+  uninstall: hooks/uninstall.sh

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>harto.devhost.dnsmasq</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__DNSMASQ__</string>
+    <string>--keep-in-foreground</string>
+    <string>--conf-file</string>
+    <string>__CONF__</string>
+  </array>
+  <key>RunAtLoad</key>
+  <__RUN_AT_LOAD__/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>__LOG_DIR__/dnsmasq.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_DIR__/dnsmasq.err.log</string>
+</dict>
+</plist>

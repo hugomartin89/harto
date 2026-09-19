@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>harto.devhost.caddy</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__CADDY__</string>
+    <string>run</string>
+    <string>--config</string>
+    <string>__CADDYFILE__</string>
+    <string>--adapter</string>
+    <string>caddyfile</string>
+  </array>
+  <key>RunAtLoad</key>
+  <__RUN_AT_LOAD__/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>__LOG_DIR__/caddy.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_DIR__/caddy.err.log</string>
+</dict>
+</plist>

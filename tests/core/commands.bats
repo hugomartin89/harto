@@ -9,7 +9,7 @@ setup() {
 @test "version prints the project name and VERSION file" {
   run "$(harto_bin)" version
   [ "$status" -eq 0 ]
-  [ "$output" = "harto 0.7.0" ]
+  [ "$output" = "harto 0.3.0" ]
 }
 
 @test "unknown command exits 2" {
@@ -27,6 +27,7 @@ setup() {
   run "$(harto_bin)" help
   [ "$status" -eq 0 ]
   [[ "$output" == *"Usage: harto "* ]]
+  [[ "$output" == *"devhost setup"* ]]
   [[ "$output" == *"plugin"* ]]
 }
 
@@ -52,6 +53,7 @@ setup() {
   run "${BATS_TEST_TMPDIR}/devx" plugin list
   [ "$status" -eq 0 ]
   [ "$output" = "$first" ]
+  [[ "$output" == *"devhost"* ]]
 }
 
 @test "unsupported operating systems are rejected" {
