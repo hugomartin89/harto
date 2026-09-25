@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Add devhost, which serves local processes on a base domain you choose.
+
 ## 0.3.0
 
 - Upgrade a clean git checkout with a fast-forward.
