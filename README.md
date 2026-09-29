@@ -81,6 +81,8 @@ harto plugin doctor <name>
 harto plugin uninstall <name>
 ```
 
+The included plugin is [devhost](plugins/devhost/README.md).
+
 ## Commands
 
 ```text
