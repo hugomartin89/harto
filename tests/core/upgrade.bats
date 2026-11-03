@@ -55,7 +55,7 @@ EOF
   run "$(harto_bin)" upgrade
   [ "$status" -eq 0 ]
   run "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version' "${XDG_STATE_HOME}/harto/state.yml"
-  [ "$output" = "0.4.0" ]
+  [ "$output" = "0.5.0" ]
 }
 
 @test "a failed fast-forward does not record the new version" {

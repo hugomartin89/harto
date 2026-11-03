@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Document how devhost changes DNS and the local trust store.
+
 ## 0.4.0
 
 - Add devhost, which serves local processes on a base domain you choose.

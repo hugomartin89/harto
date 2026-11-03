@@ -10,7 +10,7 @@ Repeating the same local setup by hand is brittle. Harto keeps one installation 
 
 ## Status
 
-Harto 0.4.0 supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
+Harto 0.5.0 supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
 
 ## Requirements
 

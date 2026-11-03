@@ -9,7 +9,7 @@ setup() {
 @test "version prints the project name and VERSION file" {
   run "$(harto_bin)" version
   [ "$status" -eq 0 ]
-  [ "$output" = "harto 0.4.0" ]
+  [ "$output" = "harto 0.5.0" ]
 }
 
 @test "unknown command exits 2" {
