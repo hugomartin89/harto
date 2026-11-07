@@ -5,4 +5,4 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-exec bats tests/core plugins/devhost/tests
+exec bats tests/core plugins/devhost/tests tests/integration
