@@ -17,6 +17,8 @@ jobs:
         run: scripts/lint.sh
       - name: Test
         run: scripts/test.sh
+      - name: Generic names
+        run: scripts/check-generic.sh
       - name: Conventional commits
         if: github.event_name == 'pull_request'
         run: |
