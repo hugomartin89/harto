@@ -9,8 +9,8 @@ name: example
 version: 0.1.0
 description: One sentence
 harto:
-  min: "0.5.0"
-  max: "0.5.0"
+  min: "0.6.0"
+  max: "0.6.0"
 platforms:
   - darwin
 dependencies:

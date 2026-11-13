@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- Keep real DNS and trust-store checks behind an explicit opt-in.
+- Reject private host names and email addresses in the repository.
+
 ## 0.5.0
 
 - Document how devhost changes DNS and the local trust store.
