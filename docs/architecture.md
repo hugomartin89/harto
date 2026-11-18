@@ -19,6 +19,7 @@ plugins/<name>/            one removable plugin
 scripts/                   lint, test, and repository checks
 tests/                     core tests and shared stubs
 docs/                      framework documentation
+skills/<name>/SKILL.md     one agent procedure per directory
 ```
 
 `bin/harto` loads `core/lib` through `core/lib/bootstrap.sh`, in a fixed order.

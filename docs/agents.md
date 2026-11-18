@@ -1,6 +1,6 @@
 # Calling HARTO from an agent
 
-An agent uses the same CLI as a person. These global flags make it safe to call without a terminal.
+An agent uses the same CLI as a person. The procedure is [skills/use-harto/SKILL.md](../skills/use-harto/SKILL.md): one directory and one `SKILL.md`, with no vendor path. These global flags make it safe to call without a terminal.
 
 ## Discover commands
 
