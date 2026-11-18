@@ -1,8 +1,6 @@
-# Harto
+# HARTO
 
 Harto is a small command-line framework for local development tools. A shared core discovers plugins, checks dependencies, and stores configuration outside the repository. Plugins add their own commands and document themselves.
-
-`devx` is not the project name. It is only an example of a local executable name.
 
 ## What it solves
 

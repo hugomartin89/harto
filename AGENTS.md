@@ -1,6 +1,6 @@
 # Agent guide
 
-Harto is a small macOS CLI. The project name is Harto. `devx` is only an example name for a local symlink.
+Harto is a small macOS CLI.
 
 Read [docs/architecture.md](docs/architecture.md) before adding a command, a plugin, or an adapter. Short form:
 
