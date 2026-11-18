@@ -69,5 +69,5 @@ EOF
   if [ -n "$link_name" ]; then
     harto_cmd_setup_link "$link_name"
   fi
-  harto_log_info "setup complete. Next: ${HARTO_PROG} plugin install <name>"
+  harto_log_info "setup complete. Next: ${HARTO_PROG} plugin add <name>"
 }

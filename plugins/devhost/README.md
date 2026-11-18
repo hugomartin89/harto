@@ -4,14 +4,15 @@ devhost publishes local processes as `<name>.<base-domain>`. You choose the base
 
 Framework behavior (install, configuration directories, upgrades) is documented in the repository [docs/](../../docs/architecture.md). This directory documents only devhost.
 
-## Install
+## Add
 
 ```bash
-harto plugin install devhost
-harto devhost setup
+harto plugin add devhost
 harto devhost add app --port 8080
 harto devhost list
 ```
+
+`harto plugin add devhost` runs `harto devhost setup` when devhost is not already active.
 
 With base domain `local.test`, that route is `app.local.test`.
 

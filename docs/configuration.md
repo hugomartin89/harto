@@ -1,6 +1,6 @@
 # Configuration
 
-Harto keeps user state out of the git checkout and out of the projects it serves.
+HARTO keeps user state out of the git checkout and out of the projects it serves.
 
 | Kind | Default |
 | --- | --- |
@@ -17,11 +17,11 @@ Each plugin uses `plugins/<name>/` under those directories. Removing one plugin 
 - `config.yml` in the config directory is the core file.
 - `state.yml` records `core_version` and, per plugin, `version`, `installed_at`, and `migrations`.
 
-An unreadable YAML file is left in place. Harto reports the path and stops instead of overwriting it.
+An unreadable YAML file is left in place. HARTO reports the path and stops instead of overwriting it.
 
 ## Backups
 
-Before a migration, Harto copies that plugin's config directory into `backups/` under the data directory.
+Before a migration, HARTO copies that plugin's config directory into `backups/` under the data directory.
 
 To save a copy yourself:
 
@@ -32,4 +32,4 @@ tar -czf harto-data.tar.gz -C "${XDG_DATA_HOME:-$HOME/.local/share}" harto
 
 ## Locks
 
-Config writers take a directory lock under the state directory so two Harto processes do not edit the same file together.
+Config writers take a directory lock under the state directory so two HARTO processes do not edit the same file together.

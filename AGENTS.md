@@ -1,6 +1,6 @@
 # Agent guide
 
-Harto is a small macOS CLI.
+HARTO is a small macOS CLI.
 
 Read [docs/architecture.md](docs/architecture.md) before adding a command, a plugin, or an adapter. Short form:
 

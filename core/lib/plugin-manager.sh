@@ -247,13 +247,37 @@ harto_plugin_run_migrations() {
   done
 }
 
-harto_plugin_install() {
+harto_plugin_in_repository() {
   local name="$1"
-  local dir manifest version current hook
 
-  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin install <name>" 2
+  harto_plugin_validate_name "$name" || return 1
+  [ -f "$HARTO_ROOT/plugins/${name}/plugin.yml" ]
+}
+
+harto_plugin_setup_command() {
+  local name="$1"
+  local entry
+
+  entry=$(harto_plugin_command_entry "$name" setup) || {
+    harto_log_info "plugin ${name} has no setup command"
+    return 0
+  }
+  harto_log_info "running setup for ${name}"
+  if ! harto_plugin_run "$name" "$entry"; then
+    harto_die "setup failed for ${name}. Run: ${HARTO_PROG} ${name} setup" 1
+  fi
+}
+
+harto_plugin_add() {
+  local name dir manifest version current hook
+
+  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin add <name>" 2
+  name="$1"
   harto_dep_check_core || return 1
-  dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
+  if ! harto_plugin_in_repository "$name"; then
+    harto_die "plugin ${name} is not in this repository. A plugin from a git URL will use: ${HARTO_PROG} plugin install <git-url>" 1
+  fi
+  dir="$HARTO_ROOT/plugins/${name}"
   harto_plugin_validate "$dir" || return 1
   manifest="${dir}/plugin.yml"
   harto_dep_check_manifest "$manifest" || return 1
@@ -265,15 +289,16 @@ harto_plugin_install() {
     current=""
   fi
   if [ "$current" = "$version" ]; then
-    harto_log_info "plugin ${name} ${version} is already installed"
+    harto_log_info "plugin ${name} ${version} is already active"
     return 0
   fi
   if [ -n "$current" ]; then
-    harto_die "plugin ${name} is installed at ${current}. Run: ${HARTO_PROG} plugin upgrade ${name}" 1
+    harto_die "plugin ${name} is active at ${current}. Run: ${HARTO_PROG} plugin upgrade ${name}" 1
   fi
 
   if harto_is_dry_run; then
-    printf '[dry-run] would install plugin %s %s\n' "$name" "$version" >&2
+    printf '[dry-run] would add plugin %s %s\n' "$name" "$version" >&2
+    printf '[dry-run] would run setup for %s\n' "$name" >&2
     return 0
   fi
 
@@ -283,7 +308,19 @@ harto_plugin_install() {
   fi
   harto_plugin_run_migrations "$name"
   harto_state_set_plugin_version "$name" "$version"
-  harto_log_info "installed plugin ${name} ${version}"
+  harto_log_info "added plugin ${name} ${version}"
+  harto_plugin_setup_command "$name"
+}
+
+harto_plugin_install() {
+  local source
+
+  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin install <git-url>" 2
+  source="$1"
+  if harto_plugin_in_repository "$source"; then
+    harto_die "plugin ${source} is already in this repository. Run: ${HARTO_PROG} plugin add ${source}" 1
+  fi
+  harto_die "plugin install is not available yet. It will clone a plugin from a git repository URL." 1
 }
 
 harto_plugin_uninstall() {
@@ -321,7 +358,7 @@ harto_plugin_cmd_list() {
   seen=" "
 
   [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} plugin list" 2
-  printf 'NAME\tVERSION\tINSTALLED\tDESCRIPTION\n'
+  printf 'NAME\tVERSION\tACTIVE\tDESCRIPTION\n'
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
     name=$(basename "$dir")

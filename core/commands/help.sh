@@ -6,7 +6,7 @@ harto_cmd_help() {
 
   [ $# -eq 0 ] || harto_die "unexpected arguments" 2
 
-  printf 'Harto is a local development toolkit.\n\n'
+  printf 'HARTO is a local development toolkit.\n\n'
   printf 'Usage: %s <command> [arguments]\n\n' "$HARTO_PROG"
   printf 'Core commands:\n'
   for file in "$HARTO_ROOT/core/commands"/*.sh; do

@@ -9,7 +9,7 @@ harto --dry-run plugin uninstall <name>
 
 `--dry-run` lists what the plugin's uninstall hook would remove and leaves those files in place. The hook is part of the plugin. Which files it deletes, and which questions it asks, are documented in that plugin.
 
-Uninstall removes the plugin from Harto's state. It does not delete the plugin source in the git checkout, other plugins' directories, or programs you installed separately.
+Uninstall removes the plugin from HARTO's state. It does not delete the plugin source in the git checkout, other plugins' directories, or programs you installed separately.
 
 ## The framework
 

@@ -1,6 +1,6 @@
 # Security
 
-Harto runs as the user who invoked it. Privileged work goes through `harto_run_privileged`, which prints the file or directory it will change, prints the single command, and asks before `sudo`. `--yes` answers the question. `--dry-run` prints the command and does not run it.
+HARTO runs as the user who invoked it. Privileged work goes through `harto_run_privileged`, which prints the file or directory it will change, prints the single command, and asks before `sudo`. `--yes` answers the question. `--dry-run` prints the command and does not run it.
 
 A plugin decides which privileged operations it offers. Those operations are documented with the plugin.
 

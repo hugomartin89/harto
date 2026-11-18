@@ -1,6 +1,6 @@
 # Architecture
 
-Harto is a Bash program. `bin/harto` resolves symlinks back to this repository and then hands off to `core/cli.sh`. The invoked file name is used only in usage text. Configuration paths come from XDG variables, not from that name.
+HARTO is a Bash program. `bin/harto` resolves symlinks back to this repository and then hands off to `core/cli.sh`. The invoked file name is used only in usage text. Configuration paths come from XDG variables, not from that name.
 
 ## Layout
 

@@ -13,7 +13,7 @@ setup() {
   [[ "$output" == *"caddy"* ]]
 }
 
-@test "plugin install stops when a required dependency is missing" {
+@test "plugin add stops when a required dependency is missing" {
   mkdir -p "${BATS_TEST_TMPDIR}/nocaddy"
   local stub
   for stub in "${HARTO_ROOT}/tests/helpers/stubs"/*; do
@@ -21,17 +21,19 @@ setup() {
     ln -s "$stub" "${BATS_TEST_TMPDIR}/nocaddy/$(basename "$stub")"
   done
   PATH="${BATS_TEST_TMPDIR}/nocaddy:${BATS_TEST_TMPDIR}/bin:/usr/bin:/bin"
-  run "$(harto_bin)" plugin install devhost
+  run "$(harto_bin)" plugin add devhost
   [ "$status" -ne 0 ]
   [[ "$output" == *"caddy"* ]]
   [ ! -f "${XDG_STATE_HOME}/harto/state.yml" ]
 }
 
-@test "plugin install is idempotent" {
-  "$(harto_bin)" plugin install devhost
-  run "$(harto_bin)" plugin install devhost
+@test "plugin add is idempotent and setup runs once" {
+  harto_devhost_env
+  "$(harto_bin)" plugin add devhost
+  run "$(harto_bin)" plugin add devhost
   [ "$status" -eq 0 ]
-  [[ "$output" == *"already installed"* ]]
+  [[ "$output" == *"already active"* ]]
+  [[ "$output" != *"running setup"* ]]
   run "${BATS_TEST_TMPDIR}/bin/yq" eval '.plugins.devhost.migrations[]' "${XDG_STATE_HOME}/harto/state.yml"
   [ "$output" = "0001" ]
 }
@@ -78,6 +80,19 @@ EOF
   run "$(harto_bin)" plugin info future
   [ "$status" -ne 0 ]
   [[ "$output" == *"not compatible"* ]]
+}
+
+@test "plugin install points a bundled plugin at add" {
+  run "$(harto_bin)" plugin install devhost
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"plugin add devhost"* ]]
+}
+
+@test "plugin install from a git url is not available yet" {
+  run "$(harto_bin)" plugin install "https://example.test/plugin.git"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"not available yet"* ]]
+  [ ! -f "${XDG_STATE_HOME}/harto/state.yml" ]
 }
 
 @test "core source does not name a plugin" {

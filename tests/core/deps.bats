@@ -14,6 +14,23 @@ setup() {
   [ ! -d "${XDG_CONFIG_HOME}/harto" ]
 }
 
+@test "setup refuses to continue when git is missing" {
+  local bin tool
+  bin="${BATS_TEST_TMPDIR}/no-git"
+  mkdir -p "$bin"
+  ln -s "${HARTO_ROOT}/tests/helpers/stubs/brew" "$bin/brew"
+  for tool in /bin/rm /bin/mkdir /bin/cat /bin/ln /bin/bash \
+    /usr/bin/dirname /usr/bin/basename /usr/bin/readlink /usr/bin/uname \
+    /usr/bin/env /usr/bin/sed /usr/bin/head /usr/bin/grep /usr/bin/tr; do
+    ln -s "$tool" "$bin/$(basename "$tool")"
+  done
+  PATH="${BATS_TEST_TMPDIR}/bin:${bin}"
+  run "$(harto_bin)" setup
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"git is not installed"* ]]
+  [ ! -d "${XDG_CONFIG_HOME}/harto" ]
+}
+
 @test "setup refuses to continue when yq is missing" {
   PATH="${HARTO_ROOT}/tests/helpers/stubs:/usr/bin:/bin"
   run "$(harto_bin)" setup

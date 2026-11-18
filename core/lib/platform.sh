@@ -16,5 +16,5 @@ harto_platform_require() {
   if harto_platform_is_darwin; then
     return 0
   fi
-  harto_die "unsupported operating system: $(harto_platform_os). Harto supports macOS only." 1
+  harto_die "unsupported operating system: $(harto_platform_os). HARTO supports macOS only." 1
 }

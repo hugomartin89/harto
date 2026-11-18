@@ -1,23 +1,24 @@
 # HARTO
 
-Harto is a small command-line framework for local development tools. A shared core discovers plugins, checks dependencies, and stores configuration outside the repository. Plugins add their own commands and document themselves.
+HARTO is a small command-line framework for local development tools. A shared core discovers plugins, checks dependencies, and stores configuration outside the repository. Plugins add their own commands and document themselves.
 
 ## What it solves
 
-Repeating the same local setup by hand is brittle. Harto keeps one installation and one configuration, then lets each plugin add its own commands. A plugin keeps its own state in that shared location so a project directory stays free of personal settings.
+Repeating the same local setup by hand is brittle. HARTO keeps one installation and one configuration, then lets each plugin add its own commands. A plugin keeps its own state in that shared location so a project directory stays free of personal settings.
 
 ## Status
 
-Harto 0.7.0 supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
+HARTO 0.7.0 supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
 
 ## Requirements
 
 - macOS
 - Bash 3.2, the Bash shipped with macOS
+- [git](https://git-scm.com/downloads)
 - [Homebrew](https://brew.sh)
 - [yq](https://github.com/mikefarah/yq) 4 or newer, the mikefarah build
 
-Development checks also use [shellcheck](https://github.com/koalaman/shellcheck) and [bats-core](https://github.com/bats-core/bats-core). They are not required to run Harto. Licenses are in [docs/dependencies.md](docs/dependencies.md).
+Development checks also use [shellcheck](https://github.com/koalaman/shellcheck) and [bats-core](https://github.com/bats-core/bats-core). They are not required to run HARTO. Licenses are in [docs/dependencies.md](docs/dependencies.md).
 
 ## Install the framework
 
@@ -28,7 +29,7 @@ git config core.hooksPath .githooks
 ./bin/harto setup
 ```
 
-`harto setup` checks the operating system, Homebrew, and yq before it writes anything. If Homebrew is missing it prints the official installer page, https://brew.sh, and stops. It does not download Homebrew. After Homebrew is installed:
+`harto setup` checks the operating system, Homebrew, git, and yq before it writes anything. If Homebrew is missing it prints the official installer page, https://brew.sh, and stops. It does not download Homebrew. After Homebrew is installed:
 
 ```bash
 brew install yq
@@ -69,11 +70,11 @@ harto doctor
 
 ## Plugins
 
-A plugin is a directory under `plugins/` with a `plugin.yml` and its own documentation. Installing one registers it. It does not download the plugin's external tools.
+A plugin that ships in `plugins/` is added with `harto plugin add`. Add records it and, when it is not already active, runs its setup command. It does not download the plugin's external tools. `harto plugin install` will later clone a plugin from a git URL. That command is not available yet.
 
 ```bash
 harto plugin list
-harto plugin install <name>
+harto plugin add <name>
 harto plugin info <name>
 harto plugin doctor <name>
 harto plugin uninstall <name>
@@ -91,7 +92,7 @@ harto doctor
 harto upgrade
 harto plugin list
 harto plugin info <name>
-harto plugin install <name>
+harto plugin add <name>
 harto plugin uninstall <name>
 harto plugin upgrade <name>
 harto plugin doctor <name>
@@ -112,7 +113,7 @@ The default test run uses temporary directories and stand-in commands. It does n
 
 ## License
 
-Harto is released under the MIT license. See [LICENSE](LICENSE). That license covers Harto's own code. It does not cover tools you install separately. Framework tools are listed in [docs/dependencies.md](docs/dependencies.md). A plugin lists its own tools next to its documentation.
+HARTO is released under the MIT license. See [LICENSE](LICENSE). That license covers HARTO's own code. It does not cover tools you install separately. Framework tools are listed in [docs/dependencies.md](docs/dependencies.md). A plugin lists its own tools next to its documentation.
 
 ## Known limitations
 

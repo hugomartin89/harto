@@ -23,6 +23,7 @@ host_allowed() {
   case "$host" in
     brew.sh|*.brew.sh|\
     github.com|*.github.com|\
+    git-scm.com|*.git-scm.com|\
     caddyserver.com|*.caddyserver.com|\
     thekelleys.org.uk|*.thekelleys.org.uk)
       return 0

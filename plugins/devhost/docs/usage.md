@@ -3,9 +3,10 @@
 ## Setup
 
 ```bash
-harto plugin install devhost
-harto devhost setup
+harto plugin add devhost
 ```
+
+`harto plugin add devhost` asks the setup questions when devhost is not already active. Run `harto devhost setup` again to change those answers.
 
 Questions, in order:
 
@@ -31,7 +32,7 @@ harto devhost list
 harto devhost remove app
 ```
 
-A route stores `name`, `host`, `target`, `created_at`, and `updated_at` in `plugins/devhost/routes.yml` under the Harto config directory. `--port` means `http://127.0.0.1:<port>`. A target that is not loopback asks for confirmation.
+A route stores `name`, `host`, `target`, `created_at`, and `updated_at` in `plugins/devhost/routes.yml` under the HARTO config directory. `--port` means `http://127.0.0.1:<port>`. A target that is not loopback asks for confirmation.
 
 `list` columns:
 

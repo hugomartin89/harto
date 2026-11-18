@@ -130,10 +130,21 @@ harto_dep_check_yq() {
   return 1
 }
 
+harto_dep_check_git() {
+  if command -v git >/dev/null 2>&1; then
+    return 0
+  fi
+  harto_log_error "git is not installed."
+  harto_log_error "install: brew install git"
+  harto_log_error "official source: https://git-scm.com/downloads"
+  return 1
+}
+
 harto_dep_check_core() {
   local failed=0
 
   harto_dep_check_brew || failed=1
+  harto_dep_check_git || failed=1
   harto_dep_check_yq || failed=1
   return "$failed"
 }
