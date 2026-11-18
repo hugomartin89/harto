@@ -58,6 +58,6 @@ setup() {
 @test "a second setup does not duplicate core state" {
   "$(harto_bin)" --yes setup
   "$(harto_bin)" --yes setup
-  run "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version' "${XDG_STATE_HOME}/harto/state.yml"
-  [ "$output" = "0.7.0" ]
+  run "${BATS_TEST_TMPDIR}/bin/yq" eval 'has("core_version")' "${XDG_STATE_HOME}/harto/state.yml"
+  [ "$output" = "false" ]
 }

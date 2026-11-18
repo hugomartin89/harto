@@ -41,7 +41,7 @@ harto_upgrade_repo() {
 }
 
 harto_upgrade_installed_plugins() {
-  local name manifest version hook dir
+  local name manifest hook dir
 
   [ -f "$(harto_state_file)" ] || return 0
   while IFS= read -r name; do
@@ -60,10 +60,6 @@ harto_upgrade_installed_plugins() {
     if [ -n "$hook" ] && [ "$hook" != "null" ] && ! harto_is_dry_run; then
       harto_plugin_run "$name" "$hook"
     fi
-    version=$(yq eval '.version' "$manifest")
-    if ! harto_is_dry_run; then
-      harto_state_set_plugin_version "$name" "$version"
-    fi
   done <<EOF
 $(harto_state_plugin_names)
 EOF
@@ -73,11 +69,4 @@ harto_upgrade_all() {
   harto_dep_check_core || return 1
   harto_upgrade_repo "$HARTO_ROOT"
   harto_upgrade_installed_plugins
-  if harto_is_dry_run; then
-    printf '[dry-run] would record core version %s\n' "$HARTO_VERSION" >&2
-    return 0
-  fi
-  harto_state_ensure
-  harto_state_set_core_version "$HARTO_VERSION"
-  harto_log_info "core version recorded: ${HARTO_VERSION}"
 }

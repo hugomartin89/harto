@@ -46,7 +46,7 @@ harto_cmd_setup() {
 
   if harto_is_dry_run; then
     printf '[dry-run] would create %s\n' "$HARTO_CONFIG_DIR" >&2
-    printf '[dry-run] would write core configuration and record version %s\n' "$HARTO_VERSION" >&2
+    printf '[dry-run] would write core configuration\n' >&2
     if [ -n "$link_name" ]; then
       harto_cmd_setup_link "$link_name"
     fi
@@ -57,14 +57,13 @@ harto_cmd_setup() {
   config=$(harto_config_file)
   if [ ! -f "$config" ]; then
     harto_atomic_write "$config" <<'EOF'
-config_version: 1
+{}
 EOF
   elif ! harto_yaml_valid "$config"; then
     harto_die "core configuration is unreadable: ${config}. It was not overwritten." 1
   fi
 
   harto_state_ensure
-  harto_state_set_core_version "$HARTO_VERSION"
 
   if [ -n "$link_name" ]; then
     harto_cmd_setup_link "$link_name"

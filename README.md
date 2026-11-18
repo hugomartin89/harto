@@ -8,7 +8,7 @@ Repeating the same local setup by hand is brittle. HARTO keeps one installation 
 
 ## Status
 
-HARTO 0.7.0 supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
+HARTO supports macOS. Other operating systems are rejected with an error. Linux and Windows are not implemented.
 
 ## Requirements
 
@@ -50,9 +50,6 @@ ln -s "$(pwd)/bin/harto" ~/.local/bin/devx
 Make sure `~/.local/bin` is on `PATH`. These then behave the same, including configuration:
 
 ```bash
-harto version
-devx version
-
 harto doctor
 devx doctor
 ```
@@ -85,7 +82,6 @@ The included plugin is [devhost](plugins/devhost/README.md).
 ## Commands
 
 ```text
-harto version
 harto help
 harto setup
 harto doctor

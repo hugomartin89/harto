@@ -16,11 +16,7 @@ broken_plugin() {
   printf '#!/usr/bin/env bash\nexit 0\n' > "${XDG_DATA_HOME}/harto/plugins/broken/commands/run.sh"
   cat > "${XDG_DATA_HOME}/harto/plugins/broken/plugin.yml" <<'EOF'
 name: broken
-version: 0.1.0
 description: privileged is not a boolean
-harto:
-  min: "0.1.0"
-  max: "9.0.0"
 platforms:
   - darwin
 commands:
@@ -68,7 +64,7 @@ EOF
 }
 
 @test "a core command without json output rejects --json" {
-  run "$(harto_bin)" --json version
+  run "$(harto_bin)" --json doctor
   [ "$status" -eq 2 ]
   [[ "$output" == *"does not support --json"* ]]
 }

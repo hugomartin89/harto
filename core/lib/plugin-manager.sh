@@ -47,7 +47,7 @@ harto_plugin_path_safe() {
 
 harto_plugin_validate() {
   local dir="$1"
-  local manifest name version description count index entry hook os listed
+  local manifest name description count index entry hook os listed
   local failed=0
 
   manifest="${dir}/plugin.yml"
@@ -57,24 +57,14 @@ harto_plugin_validate() {
   fi
 
   name=$(yq eval '.name // ""' "$manifest")
-  version=$(yq eval '.version // ""' "$manifest")
   description=$(yq eval '.description // ""' "$manifest")
 
   if [ "$(basename "$dir")" != "$name" ] || ! harto_plugin_validate_name "$name"; then
     harto_log_error "plugin name must match its directory and match ^[a-z][a-z0-9-]*$: ${dir}"
     failed=1
   fi
-  if ! printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-    harto_log_error "plugin ${name} has an invalid version: ${version}"
-    failed=1
-  fi
   if [ -z "$description" ] || [ "$description" = "null" ]; then
     harto_log_error "plugin ${name} is missing a description"
-    failed=1
-  fi
-
-  if ! harto_plugin_version_compatible "$manifest"; then
-    harto_log_error "plugin ${name} is not compatible with harto ${HARTO_VERSION}"
     failed=1
   fi
 
@@ -152,27 +142,6 @@ harto_plugin_command_line() {
   printf '\n    %s\n' "$(yq eval ".commands[${index}].description" "$manifest")"
 }
 
-harto_plugin_version_compatible() {
-  local manifest="$1"
-  local min max
-
-  min=$(yq eval '.harto.min // ""' "$manifest")
-  max=$(yq eval '.harto.max // ""' "$manifest")
-  if [ "$min" = "null" ]; then
-    min=""
-  fi
-  if [ "$max" = "null" ]; then
-    max=""
-  fi
-  if [ -n "$min" ] && ! harto_version_ge "$HARTO_VERSION" "$min"; then
-    return 1
-  fi
-  if [ -n "$max" ] && ! harto_version_ge "$max" "$HARTO_VERSION"; then
-    return 1
-  fi
-  return 0
-}
-
 harto_plugin_command_entry() {
   local name="$1"
   local command_name="$2"
@@ -216,7 +185,7 @@ harto_plugin_run() {
     export HARTO_PLUGIN_CONFIG_DIR="${HARTO_CONFIG_DIR}/plugins/${name}"
     export HARTO_PLUGIN_STATE_DIR="${HARTO_STATE_DIR}/plugins/${name}"
     export HARTO_PLUGIN_DATA_DIR="${HARTO_DATA_DIR}/plugins/${name}"
-    export HARTO_LIB HARTO_ROOT HARTO_VERSION HARTO_PROG
+    export HARTO_LIB HARTO_ROOT HARTO_PROG
     export HARTO_CONFIG_DIR HARTO_STATE_DIR HARTO_DATA_DIR
     export HARTO_YES HARTO_DRY_RUN HARTO_DEBUG
     export HARTO_NONINTERACTIVE HARTO_OUTPUT HARTO_INVOCATION
@@ -317,7 +286,7 @@ harto_plugin_setup_command() {
 }
 
 harto_plugin_enable() {
-  local name dir manifest version current hook
+  local name dir manifest hook
 
   [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin enable <name>" 2
   name="$1"
@@ -330,22 +299,13 @@ harto_plugin_enable() {
   manifest="${dir}/plugin.yml"
   harto_dep_check_manifest "$manifest" || return 1
 
-  version=$(yq eval '.version' "$manifest")
-  if [ -f "$(harto_state_file)" ]; then
-    current=$(harto_state_plugin_version "$name")
-  else
-    current=""
-  fi
-  if [ "$current" = "$version" ]; then
-    harto_log_info "plugin ${name} ${version} is already active"
+  if harto_state_plugin_active "$name"; then
+    harto_log_info "plugin ${name} is already active"
     return 0
-  fi
-  if [ -n "$current" ]; then
-    harto_die "plugin ${name} is active at ${current}. Run: ${HARTO_PROG} plugin upgrade ${name}" 1
   fi
 
   if harto_is_dry_run; then
-    printf '[dry-run] would enable plugin %s %s\n' "$name" "$version" >&2
+    printf '[dry-run] would enable plugin %s\n' "$name" >&2
     printf '[dry-run] would run setup for %s\n' "$name" >&2
     return 0
   fi
@@ -355,8 +315,8 @@ harto_plugin_enable() {
     harto_plugin_run "$name" "$hook"
   fi
   harto_plugin_run_migrations "$name"
-  harto_state_set_plugin_version "$name" "$version"
-  harto_log_info "enabled plugin ${name} ${version}"
+  harto_state_prepare_plugin "$name"
+  harto_log_info "enabled plugin ${name}"
   harto_plugin_setup_command "$name"
 }
 
@@ -402,11 +362,11 @@ harto_plugin_disable() {
 }
 
 harto_plugin_cmd_list() {
-  local dir name version installed description seen
+  local dir name installed description seen
   seen=" "
 
   [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} plugin list" 2
-  printf 'NAME\tVERSION\tACTIVE\tDESCRIPTION\n'
+  printf 'NAME\tACTIVE\tDESCRIPTION\n'
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
     name=$(basename "$dir")
@@ -415,18 +375,16 @@ harto_plugin_cmd_list() {
     esac
     seen="${seen}${name} "
     if ! harto_plugin_validate "$dir"; then
-      printf '%s\t-\tinvalid\tmanifest validation failed\n' "$name"
+      printf '%s\tinvalid\tmanifest validation failed\n' "$name"
       continue
     fi
-    version=$(yq eval '.version' "${dir}/plugin.yml")
     description=$(yq eval '.description' "${dir}/plugin.yml")
-    installed="no"
-    if [ -f "$(harto_state_file)" ]; then
-      if [ "$(harto_state_plugin_version "$name")" = "$version" ]; then
-        installed="yes"
-      fi
+    if harto_state_plugin_active "$name"; then
+      installed="yes"
+    else
+      installed="no"
     fi
-    printf '%s\t%s\t%s\t%s\n' "$name" "$version" "$installed" "$description"
+    printf '%s\t%s\t%s\n' "$name" "$installed" "$description"
   done <<EOF
 $(harto_plugin_each_dir)
 EOF

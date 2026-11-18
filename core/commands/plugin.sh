@@ -57,7 +57,7 @@ harto_cmd_plugin_doctor() {
 
 harto_plugin_upgrade() {
   local name="$1"
-  local dir manifest version hook
+  local dir manifest hook
 
   [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin upgrade <name>" 2
   harto_dep_check_core || return 1
@@ -66,7 +66,7 @@ harto_plugin_upgrade() {
   manifest="${dir}/plugin.yml"
   harto_dep_check_manifest "$manifest" || return 1
 
-  if [ "$(harto_state_plugin_version "$name")" = "" ]; then
+  if ! harto_state_plugin_active "$name"; then
     harto_die "plugin ${name} is not active. Run: ${HARTO_PROG} plugin enable ${name}" 1
   fi
 
@@ -76,11 +76,9 @@ harto_plugin_upgrade() {
   if [ -n "$hook" ] && [ "$hook" != "null" ] && ! harto_is_dry_run; then
     harto_plugin_run "$name" "$hook"
   fi
-  version=$(yq eval '.version' "$manifest")
   if harto_is_dry_run; then
-    printf '[dry-run] would record plugin %s version %s\n' "$name" "$version" >&2
+    printf '[dry-run] would upgrade plugin %s\n' "$name" >&2
     return 0
   fi
-  harto_state_set_plugin_version "$name" "$version"
-  harto_log_info "upgraded plugin ${name} to ${version}"
+  harto_log_info "upgraded plugin ${name}"
 }

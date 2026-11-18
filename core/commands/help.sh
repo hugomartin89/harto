@@ -39,7 +39,6 @@ _harto_help_json() {
     harto_plugin_validate "$dir" >/dev/null 2>&1 || continue
     entry=$(yq eval -o=json -I=0 '{
       "name": .name,
-      "version": .version,
       "description": .description,
       "commands": [(.commands // [])[] | {
         "name": .name,
@@ -54,7 +53,7 @@ _harto_help_json() {
 $(_harto_help_plugin_dirs)
 EOF
 
-  printf '{"version":"%s","core":[%s],"plugins":[%s]}\n' "$HARTO_VERSION" "$core" "$plugins"
+  printf '{"core":[%s],"plugins":[%s]}\n' "$core" "$plugins"
 }
 
 harto_cmd_help() {

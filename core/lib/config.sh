@@ -53,46 +53,31 @@ harto_yaml_get() {
 }
 
 harto_state_ensure() {
-  local file
+  local file tmp
   harto_config_ensure_dirs
   file=$(harto_state_file)
   if [ ! -f "$file" ]; then
     harto_atomic_write "$file" <<'EOF'
-core_version: ""
 plugins: {}
 EOF
   fi
   if ! harto_yaml_valid "$file"; then
     harto_die "state file is unreadable: ${file}. Move it aside; it was not overwritten." 1
   fi
+  if [ "$(yq eval 'has("core_version") or ([.plugins // {} | .[] | has("version")] | any)' "$file")" = "true" ]; then
+    tmp=$(mktemp "$(dirname "$file")/.tmp.XXXXXX")
+    yq eval 'del(.core_version) | .plugins |= with_entries(.value |= del(.version))' "$file" > "$tmp"
+    mv "$tmp" "$file"
+  fi
 }
 
-harto_state_core_version() {
-  harto_state_ensure
-  harto_yaml_get "$(harto_state_file)" '.core_version // ""'
-}
-
-harto_state_set_core_version() {
-  local version="$1"
-  local file tmp
-
-  harto_state_ensure
-  file=$(harto_state_file)
-  tmp=$(mktemp "$(dirname "$file")/.tmp.XXXXXX")
-  VERSION="$version" yq eval '.core_version = strenv(VERSION)' "$file" > "$tmp"
-  mv "$tmp" "$file"
-}
-
-harto_state_plugin_version() {
+harto_state_plugin_active() {
   local name="$1"
   local value
 
-  harto_state_ensure
-  value=$(NAME="$name" yq eval '.plugins[strenv(NAME)].version // ""' "$(harto_state_file)")
-  if [ "$value" = "null" ]; then
-    value=""
-  fi
-  printf '%s\n' "$value"
+  [ -f "$(harto_state_file)" ] || return 1
+  value=$(NAME="$name" yq eval '.plugins | has(strenv(NAME))' "$(harto_state_file)")
+  [ "$value" = "true" ]
 }
 
 harto_state_prepare_plugin() {
@@ -104,28 +89,11 @@ harto_state_prepare_plugin() {
   now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   tmp=$(mktemp "$(dirname "$file")/.tmp.XXXXXX")
   NAME="$name" NOW="$now" yq eval '
-    .plugins[strenv(NAME)].version = (.plugins[strenv(NAME)].version // "") |
+    del(.plugins[strenv(NAME)].version) |
     .plugins[strenv(NAME)].installed_at = (.plugins[strenv(NAME)].installed_at // strenv(NOW)) |
     .plugins[strenv(NAME)].migrations = (.plugins[strenv(NAME)].migrations // [])
   ' "$file" > "$tmp"
   mv "$tmp" "$file"
-}
-
-harto_state_set_plugin_version() {
-  local name="$1"
-  local version="$2"
-  local file tmp now
-
-  harto_state_prepare_plugin "$name"
-  file=$(harto_state_file)
-  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  tmp=$(mktemp "$(dirname "$file")/.tmp.XXXXXX")
-  NAME="$name" VERSION="$version" NOW="$now" yq eval '
-    .plugins[strenv(NAME)].version = strenv(VERSION) |
-    .plugins[strenv(NAME)].installed_at = strenv(NOW)
-  ' "$file" > "$tmp"
-  mv "$tmp" "$file"
-  harto_log_op "info" "recorded ${name} ${version}"
 }
 
 harto_state_migration_applied() {

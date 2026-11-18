@@ -4,7 +4,7 @@
 harto_test_root() {
   local dir="$BATS_TEST_DIRNAME"
   while [ "$dir" != "/" ]; do
-    if [ -f "${dir}/VERSION" ]; then
+    if [ -f "${dir}/bin/harto" ]; then
       printf '%s\n' "$dir"
       return 0
     fi

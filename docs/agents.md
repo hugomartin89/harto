@@ -8,7 +8,7 @@ An agent uses the same CLI as a person. The procedure is [skills/use-harto/SKILL
 harto help --json
 ```
 
-The output is one JSON object: `version`, `core` (each with `name`, `description`, `json`), and `plugins` (each with `name`, `version`, `description`, and `commands`). A plugin command lists `name`, `description`, `usage`, `privileged`, and `json`. A plugin whose manifest is invalid is left out. A plugin's own docs explain its arguments and environment variables.
+The output is one JSON object: `core` (each with `name`, `description`, `json`) and `plugins` (each with `name`, `description`, and `commands`). A plugin command lists `name`, `description`, `usage`, `privileged`, and `json`. A plugin whose manifest is invalid is left out. A plugin's own docs explain its arguments and environment variables.
 
 ## Run without a terminal
 

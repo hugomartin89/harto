@@ -36,7 +36,6 @@ skills/<name>/SKILL.md     one agent procedure per directory
 `core/` does not name a plugin and does not source `plugins/`. A plugin sources `$HARTO_LIB` and its own files. Plugin commands run in a separate `bash` process. The process receives:
 
 - `HARTO_ROOT`
-- `HARTO_VERSION`
 - `HARTO_PROG`
 - `HARTO_LIB`
 - `HARTO_PLUGIN_DIR`

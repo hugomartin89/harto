@@ -10,9 +10,6 @@ harto_cli_main() {
   # shellcheck source=lib/bootstrap.sh
   . "$HARTO_LIB/bootstrap.sh"
 
-  HARTO_VERSION=$(tr -d '[:space:]' < "$HARTO_ROOT/VERSION")
-  export HARTO_VERSION
-
   while [ $# -gt 0 ]; do
     case "$1" in
       --yes|-y)

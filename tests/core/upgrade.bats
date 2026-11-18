@@ -41,32 +41,26 @@ EOF
   "$(harto_bin)" --yes setup
   HARTO_STUB_GIT_DIRTY=1
   export HARTO_STUB_GIT_DIRTY
-  "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version = "0.0.0"' -i "${XDG_STATE_HOME}/harto/state.yml"
   run "$(harto_bin)" upgrade
   [ "$status" -ne 0 ]
   [[ "$output" == *"local modifications"* ]]
-  run "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version' "${XDG_STATE_HOME}/harto/state.yml"
-  [ "$output" = "0.0.0" ]
 }
 
-@test "upgrade records the core version only after a clean fast-forward" {
+@test "upgrade completes after a clean fast-forward" {
   HARTO_STUB_GIT_DIRTY=0
   export HARTO_STUB_GIT_DIRTY
   run "$(harto_bin)" upgrade
   [ "$status" -eq 0 ]
-  run "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version' "${XDG_STATE_HOME}/harto/state.yml"
-  [ "$output" = "0.7.0" ]
+  [[ "$output" == *"fast-forwarded"* ]]
 }
 
-@test "a failed fast-forward does not record the new version" {
+@test "a failed fast-forward stops the upgrade" {
   "$(harto_bin)" --yes setup
-  "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version = "0.0.0"' -i "${XDG_STATE_HOME}/harto/state.yml"
   HARTO_STUB_GIT_STATUS=1
   export HARTO_STUB_GIT_STATUS
   run "$(harto_bin)" upgrade
   [ "$status" -ne 0 ]
-  run "${BATS_TEST_TMPDIR}/bin/yq" eval '.core_version' "${XDG_STATE_HOME}/harto/state.yml"
-  [ "$output" = "0.0.0" ]
+  [[ "$output" == *"git fetch failed"* ]]
 }
 
 @test "dry-run upgrade does not rewrite state" {

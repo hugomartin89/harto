@@ -42,11 +42,7 @@ setup() {
   mkdir -p "${XDG_DATA_HOME}/harto/plugins/evil"
   cat > "${XDG_DATA_HOME}/harto/plugins/evil/plugin.yml" <<'EOF'
 name: evil
-version: 0.1.0
 description: broken entry
-harto:
-  min: "0.1.0"
-  max: "9.0.0"
 platforms:
   - darwin
 commands:
@@ -57,29 +53,6 @@ EOF
   run "$(harto_bin)" plugin info evil
   [ "$status" -ne 0 ]
   [[ "$output" == *"invalid"* ]]
-}
-
-@test "a plugin that requires a newer core is rejected" {
-  mkdir -p "${XDG_DATA_HOME}/harto/plugins/future/commands"
-  printf '#!/usr/bin/env bash\nexit 0\n' > "${XDG_DATA_HOME}/harto/plugins/future/commands/run.sh"
-  chmod +x "${XDG_DATA_HOME}/harto/plugins/future/commands/run.sh"
-  cat > "${XDG_DATA_HOME}/harto/plugins/future/plugin.yml" <<'EOF'
-name: future
-version: 0.1.0
-description: needs a newer core
-harto:
-  min: "9.0.0"
-  max: "9.0.0"
-platforms:
-  - darwin
-commands:
-  - name: run
-    description: run
-    entrypoint: commands/run.sh
-EOF
-  run "$(harto_bin)" plugin info future
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"not compatible"* ]]
 }
 
 @test "plugin install points a bundled plugin at enable" {

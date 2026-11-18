@@ -6,11 +6,7 @@ A plugin is a directory named with `^[a-z][a-z0-9-]*$` and a `plugin.yml` file. 
 
 ```yaml
 name: example
-version: 0.1.0
 description: One sentence
-harto:
-  min: "0.7.0"
-  max: "0.7.0"
 platforms:
   - darwin
 dependencies:
@@ -35,7 +31,7 @@ hooks:
   uninstall: hooks/uninstall.sh
 ```
 
-`version`, `harto.min`, and `harto.max` are `MAJOR.MINOR.PATCH`. `max` is inclusive. Entry points and hooks are relative paths inside the plugin directory. `..` and absolute paths are rejected. A command entry point must exist.
+Entry points and hooks are relative paths inside the plugin directory. `..` and absolute paths are rejected. A command entry point must exist.
 
 `usage`, `privileged`, and `json` are optional. `usage` is the argument text shown after the command name in help. `privileged: true` means the command can reach `harto_run_privileged`. `json: true` means the command honors `--json`. HARTO rejects `--json` for a command that does not declare it. `privileged` and `json` must be booleans. All three appear in `harto help --json`.
 
@@ -53,7 +49,7 @@ hooks:
 | upgrade | `harto plugin upgrade` and `harto upgrade`, after a clean fast-forward |
 | uninstall | `harto plugin disable` |
 
-Migrations live in `migrations/NNNN-description.sh`. HARTO runs each one once, records the numeric id in state, and backs up the plugin config directory first. A migration is idempotent. The active version is recorded only after enable or upgrade finishes, and before setup runs.
+Migrations live in `migrations/NNNN-description.sh`. HARTO runs each one once, records the numeric id in state, and backs up the plugin config directory first. A migration is idempotent. The plugin is recorded as active after enable finishes, and before setup runs.
 
 ## Command process
 

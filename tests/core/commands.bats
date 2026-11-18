@@ -6,12 +6,6 @@ setup() {
   harto_test_isolate
 }
 
-@test "version prints the project name and VERSION file" {
-  run "$(harto_bin)" version
-  [ "$status" -eq 0 ]
-  [ "$output" = "harto 0.7.0" ]
-}
-
 @test "unknown command exits 2" {
   run "$(harto_bin)" nosuch
   [ "$status" -eq 2 ]
@@ -19,7 +13,7 @@ setup() {
 }
 
 @test "unexpected arguments are rejected" {
-  run "$(harto_bin)" version extra
+  run "$(harto_bin)" doctor extra
   [ "$status" -eq 2 ]
 }
 
@@ -36,14 +30,6 @@ setup() {
   run "${BATS_TEST_TMPDIR}/devx" help
   [ "$status" -eq 0 ]
   [[ "$output" == *"Usage: devx "* ]]
-}
-
-@test "version is the same through a devx symlink" {
-  ln -s "$(harto_bin)" "${BATS_TEST_TMPDIR}/devx"
-  run "$(harto_bin)" version
-  local first="$output"
-  run "${BATS_TEST_TMPDIR}/devx" version
-  [ "$output" = "$first" ]
 }
 
 @test "plugin list is the same through a devx symlink" {
@@ -68,7 +54,7 @@ esac
 EOF
   chmod +x "${BATS_TEST_TMPDIR}/uname-bin/uname"
   PATH="${BATS_TEST_TMPDIR}/uname-bin:${PATH}"
-  run "$(harto_bin)" version
+  run "$(harto_bin)" help
   [ "$status" -ne 0 ]
   [[ "$output" == *"macOS only"* ]]
 }

@@ -6,7 +6,6 @@ harto_cmd_doctor() {
 
   [ $# -eq 0 ] || harto_die "unexpected arguments" 2
 
-  printf 'harto: %s\n' "$HARTO_VERSION"
   printf 'root: %s\n' "$HARTO_ROOT"
   printf 'program: %s\n' "$HARTO_PROG"
   printf 'os: %s\n' "$(harto_platform_os)"
