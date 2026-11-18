@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- Record this framework release. A plugin can declare compatibility through 0.7.0.
+
 ## 0.6.0
 
 - Keep real DNS and trust-store checks behind an explicit opt-in.

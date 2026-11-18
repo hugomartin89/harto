@@ -3,7 +3,7 @@ version: 0.2.0
 description: Local domains, HTTPS, and reverse-proxy routes
 harto:
   min: "0.3.0"
-  max: "0.6.0"
+  max: "0.7.0"
 platforms:
   - darwin
 dependencies:
