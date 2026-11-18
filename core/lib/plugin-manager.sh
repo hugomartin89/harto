@@ -268,10 +268,10 @@ harto_plugin_setup_command() {
   fi
 }
 
-harto_plugin_add() {
+harto_plugin_enable() {
   local name dir manifest version current hook
 
-  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin add <name>" 2
+  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin enable <name>" 2
   name="$1"
   harto_dep_check_core || return 1
   if ! harto_plugin_in_repository "$name"; then
@@ -297,7 +297,7 @@ harto_plugin_add() {
   fi
 
   if harto_is_dry_run; then
-    printf '[dry-run] would add plugin %s %s\n' "$name" "$version" >&2
+    printf '[dry-run] would enable plugin %s %s\n' "$name" "$version" >&2
     printf '[dry-run] would run setup for %s\n' "$name" >&2
     return 0
   fi
@@ -308,7 +308,7 @@ harto_plugin_add() {
   fi
   harto_plugin_run_migrations "$name"
   harto_state_set_plugin_version "$name" "$version"
-  harto_log_info "added plugin ${name} ${version}"
+  harto_log_info "enabled plugin ${name} ${version}"
   harto_plugin_setup_command "$name"
 }
 
@@ -318,31 +318,31 @@ harto_plugin_install() {
   [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin install <git-url>" 2
   source="$1"
   if harto_plugin_in_repository "$source"; then
-    harto_die "plugin ${source} is already in this repository. Run: ${HARTO_PROG} plugin add ${source}" 1
+    harto_die "plugin ${source} is already in this repository. Run: ${HARTO_PROG} plugin enable ${source}" 1
   fi
   harto_die "plugin install is not available yet. It will clone a plugin from a git repository URL." 1
 }
 
-harto_plugin_uninstall() {
-  local name="$1"
-  local dir manifest hook
+harto_plugin_disable() {
+  local name dir manifest hook
 
-  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin uninstall <name>" 2
+  [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin disable <name>" 2
+  name="$1"
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
   manifest="${dir}/plugin.yml"
   hook=$(yq eval '.hooks.uninstall // ""' "$manifest")
 
   if harto_is_dry_run; then
-    printf '[dry-run] would uninstall plugin %s\n' "$name" >&2
+    printf '[dry-run] would disable plugin %s\n' "$name" >&2
     if [ -n "$hook" ] && [ "$hook" != "null" ]; then
       harto_plugin_run "$name" "$hook"
     fi
-    printf '[dry-run] would remove %s from the installed state\n' "$name" >&2
+    printf '[dry-run] would remove %s from the active state\n' "$name" >&2
     return 0
   fi
 
-  if ! harto_confirm "Uninstall plugin ${name}?"; then
-    harto_die "uninstallation cancelled" 1
+  if ! harto_confirm "Disable plugin ${name}?"; then
+    harto_die "disable cancelled" 1
   fi
   if [ -n "$hook" ] && [ "$hook" != "null" ]; then
     harto_plugin_run "$name" "$hook"
@@ -350,7 +350,7 @@ harto_plugin_uninstall() {
   if [ -f "$(harto_state_file)" ]; then
     harto_state_remove_plugin "$name"
   fi
-  harto_log_info "uninstalled plugin ${name}"
+  harto_log_info "disabled plugin ${name}"
 }
 
 harto_plugin_cmd_list() {

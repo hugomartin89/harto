@@ -34,21 +34,21 @@ hooks:
 
 `version`, `harto.min`, and `harto.max` are `MAJOR.MINOR.PATCH`. `max` is inclusive. Entry points and hooks are relative paths inside the plugin directory. `..` and absolute paths are rejected. A command entry point must exist.
 
-`required: true` dependencies are checked by `harto plugin add` and must also be checked by the plugin's setup command. A missing required dependency stops the command before it writes configuration or records the plugin as active. Optional dependencies are warnings.
+`required: true` dependencies are checked by `harto plugin enable` and must also be checked by the plugin's setup command. A missing required dependency stops the command before it writes configuration or records the plugin as active. Optional dependencies are warnings.
 
-`harto plugin add <name>` is for a plugin that already lives in `plugins/` in this repository. If that plugin is not active yet, add records it and then runs its `setup` command. `harto plugin install <git-url>` is reserved for cloning a plugin from a git repository. That command is not available yet.
+`harto plugin enable <name>` is for a plugin that already lives in `plugins/` in this repository. If that plugin is not active yet, enable records it and then runs its `setup` command. `harto plugin disable <name>` runs the uninstall hook and removes the plugin from the active state. `harto plugin install <git-url>` is reserved for cloning a plugin from a git repository. That command is not available yet.
 
 ## Lifecycle
 
 | Hook | When it runs |
 | --- | --- |
-| install | `harto plugin add`, after dependency checks and before setup |
+| install | `harto plugin enable`, after dependency checks and before setup |
 | configure | the plugin's own setup command |
 | doctor | `harto plugin doctor` and `harto doctor` |
 | upgrade | `harto plugin upgrade` and `harto upgrade`, after a clean fast-forward |
-| uninstall | `harto plugin uninstall` |
+| uninstall | `harto plugin disable` |
 
-Migrations live in `migrations/NNNN-description.sh`. HARTO runs each one once, records the numeric id in state, and backs up the plugin config directory first. A migration is idempotent. The active version is recorded only after add or upgrade finishes, and before setup runs.
+Migrations live in `migrations/NNNN-description.sh`. HARTO runs each one once, records the numeric id in state, and backs up the plugin config directory first. A migration is idempotent. The active version is recorded only after enable or upgrade finishes, and before setup runs.
 
 ## Command process
 

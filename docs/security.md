@@ -10,7 +10,7 @@ A plugin decides which privileged operations it offers. Those operations are doc
 - Plugin entry points cannot be absolute and cannot contain `..`.
 - Configuration values are passed to `yq` with `strenv`. Commands are not built with `eval`.
 - Important writes use a temporary file in the same directory, then `rename`.
-- Uninstall removes the plugin's registered state. It does not delete other plugins' directories or programs the plugin did not create. The plugin's own uninstall hook decides which of its generated files to remove, and it asks first.
+- Disable removes the plugin's registered state. It does not delete other plugins' directories or programs the plugin did not create. The plugin's own uninstall hook decides which of its generated files to remove, and it asks first.
 
 ## What not to commit
 

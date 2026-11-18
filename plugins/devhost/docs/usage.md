@@ -3,10 +3,10 @@
 ## Setup
 
 ```bash
-harto plugin add devhost
+harto plugin enable devhost
 ```
 
-`harto plugin add devhost` asks the setup questions when devhost is not already active. Run `harto devhost setup` again to change those answers.
+`harto plugin enable devhost` asks the setup questions when devhost is not already active. Run `harto devhost setup` again to change those answers.
 
 Questions, in order:
 
@@ -44,18 +44,19 @@ A route stores `name`, `host`, `target`, `created_at`, and `updated_at` in `plug
 
 devhost writes its own Caddyfile under its data directory and reloads Caddy with `caddy reload`. It does not edit Caddy's global configuration. The apply order is render, `caddy validate`, keep the previous file, reload, read the admin API. If reload or the API check fails, the previous file is restored and reloaded.
 
-Every site is `bind 127.0.0.1`.
+If Caddy is not running yet, setup and `devhost add` still save and validate the file, and they say so. Caddy reads that file when `devhost up` starts it, so `applied` stays `no` until then.
+
+Every site is `bind 127.0.0.1`. HTTPS uses port 443 and plain HTTP uses port 80. macOS only lets a system service bind those ports. A refusal that says `bind: permission denied` means the system service is not the process serving the admin API. Run `harto devhost up` and add the route again.
 
 ## DNS
 
-In `dnsmasq` mode, devhost writes a dnsmasq config that answers the base domain and its subdomains with `127.0.0.1` on port 5353. It then asks before writing `/etc/resolver/<domain>`:
+In `dnsmasq` mode, devhost writes a dnsmasq config that answers the base domain and its subdomains with `127.0.0.1` on port 53. It then asks before writing `/etc/resolver/<domain>`:
 
 ```text
 nameserver 127.0.0.1
-port 5353
 ```
 
-That write is the privileged step. `/etc/hosts` is not modified.
+That write is the privileged step. `/etc/hosts` is not modified. macOS sends those queries to port 53. `harto devhost up` starts dnsmasq and rewrites the resolver file when it still names another port. `harto devhost status` reports dnsmasq running only while that process is up.
 
 ## HTTPS
 
@@ -63,12 +64,14 @@ Choosing `mkcert` prints that `mkcert -install` adds a local certificate authori
 
 ## Services
 
-Setup explains the LaunchAgents and asks before writing them:
+Setup explains the services and asks before writing them:
 
-- `~/Library/LaunchAgents/harto.devhost.caddy.plist`
-- `~/Library/LaunchAgents/harto.devhost.dnsmasq.plist` when DNS is dnsmasq
+- `/Library/LaunchDaemons/harto.devhost.caddy.plist` — Caddy, as root, on `127.0.0.1` ports 80 and 443
+- `/Library/LaunchDaemons/harto.devhost.dnsmasq.plist` when DNS is dnsmasq — dnsmasq, as root, on `127.0.0.1` port 53
 
-`RunAtLoad` follows the login answer. `KeepAlive` restarts a service that exits with an error. `harto devhost up` bootstraps them for the current user. `harto devhost down` boots them out. They are not loaded during setup unless you asked for login start.
+Installing, starting, stopping, and removing these daemons are privileged. Each step prints the command and asks before `sudo`. A previous user LaunchAgent is removed so it cannot keep the port.
+
+`RunAtLoad` follows the login answer. With that answer set to yes, Caddy and dnsmasq start at boot. `KeepAlive` restarts a service that exits with an error. `harto devhost up` loads them. `harto devhost down` unloads them. They are not loaded during setup unless you asked to start at login.
 
 ## Domain change
 
@@ -87,4 +90,4 @@ The test suite does not touch a real resolver or keychain. On a machine where yo
 3. Run `harto devhost up`.
 4. Add a route to a local process and open `https://<name>.<domain>`.
 5. Run `harto devhost doctor` and confirm `applied=yes` only while Caddy is up.
-6. Run `harto devhost down` and, if you want the files gone, `harto plugin uninstall devhost`.
+6. Run `harto devhost down` and, if you want the files gone, `harto plugin disable devhost`.

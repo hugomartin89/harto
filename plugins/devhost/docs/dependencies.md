@@ -9,7 +9,7 @@ devhost does not ship these programs. Install them from the links below. The MIT
 | mkcert | only when HTTPS is enabled | BSD 3-Clause | https://github.com/FiloSottile/mkcert |
 | Colima | no; recommended when you want containers on macOS | MIT | https://github.com/abiosoft/colima |
 
-`harto plugin add devhost` stops before writing configuration when Caddy or dnsmasq is missing. They print the install hint and the official URL. They do not install packages. mkcert is checked only if you choose HTTPS. Colima is reported and never blocks setup.
+`harto plugin enable devhost` stops before writing configuration when Caddy or dnsmasq is missing. They print the install hint and the official URL. They do not install packages. mkcert is checked only if you choose HTTPS. Colima is reported and never blocks setup.
 
 `harto devhost doctor` prints the same gaps and exits 0.
 

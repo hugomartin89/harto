@@ -9,9 +9,9 @@
 - `yq (mikefarah) >= 4 is required` means the command is missing or it is a different yq. `brew install yq` installs the mikefarah build. The Python package named yq is not accepted.
 - `git is not installed` means `git` is not on `PATH`. HARTO does not install it.
 
-## A plugin add stops
+## A plugin enable stops
 
-`harto plugin add` checks the dependencies declared in that plugin's manifest before it records the plugin or runs its setup. The message names the missing command, the install hint, and the official URL. Nothing is written until those required commands exist.
+`harto plugin enable` checks the dependencies declared in that plugin's manifest before it records the plugin or runs its setup. The message names the missing command, the install hint, and the official URL. Nothing is written until those required commands exist.
 
 ## Upgrade stopped
 

@@ -7,12 +7,12 @@ Framework behavior (install, configuration directories, upgrades) is documented 
 ## Add
 
 ```bash
-harto plugin add devhost
+harto plugin enable devhost
 harto devhost add app --port 8080
 harto devhost list
 ```
 
-`harto plugin add devhost` runs `harto devhost setup` when devhost is not already active.
+`harto plugin enable devhost` runs `harto devhost setup` when devhost is not already active.
 
 With base domain `local.test`, that route is `app.local.test`.
 

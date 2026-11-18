@@ -93,7 +93,7 @@ harto_proxy_restore_last_good() {
 }
 
 harto_proxy_apply() {
-  local current last tmp dir
+  local current last tmp dir err status
 
   current=$(harto_proxy_caddyfile)
   last=$(harto_proxy_last_good)
@@ -107,10 +107,17 @@ harto_proxy_apply() {
 
   tmp=$(mktemp "${dir}/.Caddyfile.XXXXXX")
   harto_proxy_render > "$tmp"
+  caddy fmt --overwrite "$tmp" >/dev/null 2>&1 || true
   if ! harto_proxy_validate "$tmp"; then
     rm -f "$tmp"
     harto_log_error "generated proxy configuration is invalid. The previous file was kept."
     return 1
+  fi
+
+  if ! harto_proxy_verify >/dev/null 2>&1; then
+    mv "$tmp" "$current"
+    harto_log_info "proxy is not running. The configuration is saved and loads with: ${HARTO_PROG} devhost up"
+    return 0
   fi
 
   if [ -f "$current" ]; then
@@ -118,7 +125,15 @@ harto_proxy_apply() {
   fi
   mv "$tmp" "$current"
 
-  if ! harto_proxy_reload || ! harto_proxy_verify; then
+  err=$(mktemp "${dir}/.caddy-reload.XXXXXX")
+  status=0
+  harto_proxy_reload >"$err" 2>&1 || status=$?
+  cat "$err" >&2
+  if [ "$status" -ne 0 ] && grep -q 'permission denied' "$err"; then
+    harto_log_error "macOS reserves ports 80 and 443. Start the devhost system service: ${HARTO_PROG} devhost up"
+  fi
+  rm -f "$err"
+  if [ "$status" -ne 0 ] || ! harto_proxy_verify; then
     harto_log_error "proxy did not load the new configuration. Restoring the last valid file."
     harto_proxy_restore_last_good
     return 1

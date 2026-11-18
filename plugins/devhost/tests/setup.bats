@@ -5,7 +5,7 @@ load '../../../tests/helpers/setup'
 setup() {
   harto_test_isolate
   harto_devhost_env
-  "$(harto_bin)" plugin add devhost
+  "$(harto_bin)" plugin enable devhost
   "$(harto_bin)" devhost setup
 }
 

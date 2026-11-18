@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# harto-summary: List, inspect, add, and upgrade plugins
+# harto-summary: List, inspect, enable, and upgrade plugins
 
 harto_cmd_plugin() {
   local sub
 
-  [ $# -ge 1 ] || harto_die "usage: ${HARTO_PROG} plugin list|info|add|install|uninstall|upgrade|doctor" 2
+  [ $# -ge 1 ] || harto_die "usage: ${HARTO_PROG} plugin list|info|enable|install|disable|upgrade|doctor" 2
   sub="$1"
   shift
 
@@ -17,15 +17,15 @@ harto_cmd_plugin() {
       harto_dep_check_core || return 1
       harto_plugin_cmd_info "$@"
       ;;
-    add)
-      harto_plugin_add "$@"
+    enable)
+      harto_plugin_enable "$@"
       ;;
     install)
       harto_plugin_install "$@"
       ;;
-    uninstall)
+    disable)
       harto_dep_check_core || return 1
-      harto_plugin_uninstall "$@"
+      harto_plugin_disable "$@"
       ;;
     upgrade)
       harto_plugin_upgrade "$@"
@@ -67,7 +67,7 @@ harto_plugin_upgrade() {
   harto_dep_check_manifest "$manifest" || return 1
 
   if [ "$(harto_state_plugin_version "$name")" = "" ]; then
-    harto_die "plugin ${name} is not active. Run: ${HARTO_PROG} plugin add ${name}" 1
+    harto_die "plugin ${name} is not active. Run: ${HARTO_PROG} plugin enable ${name}" 1
   fi
 
   harto_upgrade_repo "$dir"

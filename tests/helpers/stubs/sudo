@@ -8,7 +8,7 @@ shift
 args=()
 for arg in "$@"; do
   case "$arg" in
-    /etc/*) args+=("${HARTO_STUB_FAKE_ROOT}${arg}") ;;
+    /etc/*|/Library/*) args+=("${HARTO_STUB_FAKE_ROOT}${arg}") ;;
     *) args+=("$arg") ;;
   esac
 done

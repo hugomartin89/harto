@@ -7,8 +7,7 @@
   <array>
     <string>__DNSMASQ__</string>
     <string>--keep-in-foreground</string>
-    <string>--conf-file</string>
-    <string>__CONF__</string>
+    <string>--conf-file=__CONF__</string>
   </array>
   <key>RunAtLoad</key>
   <__RUN_AT_LOAD__/>
@@ -21,5 +20,14 @@
   <string>__LOG_DIR__/dnsmasq.out.log</string>
   <key>StandardErrorPath</key>
   <string>__LOG_DIR__/dnsmasq.err.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/var/root</string>
+    <key>XDG_CONFIG_HOME</key>
+    <string>/var/root/.config</string>
+    <key>XDG_DATA_HOME</key>
+    <string>/var/root/.local/share</string>
+  </dict>
 </dict>
 </plist>

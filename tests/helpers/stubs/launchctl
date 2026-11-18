@@ -2,7 +2,11 @@
 [ -n "${HARTO_STUB_LOG:-}" ] && printf 'launchctl %s\n' "$*" >> "$HARTO_STUB_LOG"
 case "${1:-}" in
   print)
-    exit "${HARTO_STUB_LAUNCHCTL_PRINT:-0}"
+    if [ "${HARTO_STUB_LAUNCHCTL_PRINT:-0}" -ne 0 ]; then
+      exit "${HARTO_STUB_LAUNCHCTL_PRINT}"
+    fi
+    printf 'state = %s\n' "${HARTO_STUB_LAUNCHCTL_STATE:-running}"
+    exit 0
     ;;
   *)
     exit 0

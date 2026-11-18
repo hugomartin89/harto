@@ -70,14 +70,14 @@ harto doctor
 
 ## Plugins
 
-A plugin that ships in `plugins/` is added with `harto plugin add`. Add records it and, when it is not already active, runs its setup command. It does not download the plugin's external tools. `harto plugin install` will later clone a plugin from a git URL. That command is not available yet.
+A plugin that ships in `plugins/` is enabled with `harto plugin enable`. Enable records it and, when it is not already active, runs its setup command. It does not download the plugin's external tools. `harto plugin disable` stops it and removes its registered state. `harto plugin install` will later clone a plugin from a git URL. That command is not available yet.
 
 ```bash
 harto plugin list
-harto plugin add <name>
+harto plugin enable <name>
 harto plugin info <name>
 harto plugin doctor <name>
-harto plugin uninstall <name>
+harto plugin disable <name>
 ```
 
 The included plugin is [devhost](plugins/devhost/README.md).
@@ -92,8 +92,8 @@ harto doctor
 harto upgrade
 harto plugin list
 harto plugin info <name>
-harto plugin add <name>
-harto plugin uninstall <name>
+harto plugin enable <name>
+harto plugin disable <name>
 harto plugin upgrade <name>
 harto plugin doctor <name>
 ```

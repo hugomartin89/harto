@@ -12,4 +12,4 @@ These are the tools the HARTO framework itself needs. A plugin lists its own too
 
 `harto setup` checks Homebrew, git, and yq before it writes anything. If one is missing, it prints the install hint and the official URL, then exits. It does not install packages. The Python package named yq is not accepted.
 
-`harto doctor` reports the same gaps and exits 0. `harto plugin add` uses the same checker on the dependencies declared in that plugin's manifest.
+`harto doctor` reports the same gaps and exits 0. `harto plugin enable` uses the same checker on the dependencies declared in that plugin's manifest.

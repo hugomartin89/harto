@@ -13,7 +13,7 @@ setup() {
   [[ "$output" == *"caddy"* ]]
 }
 
-@test "plugin add stops when a required dependency is missing" {
+@test "plugin enable stops when a required dependency is missing" {
   mkdir -p "${BATS_TEST_TMPDIR}/nocaddy"
   local stub
   for stub in "${HARTO_ROOT}/tests/helpers/stubs"/*; do
@@ -21,16 +21,16 @@ setup() {
     ln -s "$stub" "${BATS_TEST_TMPDIR}/nocaddy/$(basename "$stub")"
   done
   PATH="${BATS_TEST_TMPDIR}/nocaddy:${BATS_TEST_TMPDIR}/bin:/usr/bin:/bin"
-  run "$(harto_bin)" plugin add devhost
+  run "$(harto_bin)" plugin enable devhost
   [ "$status" -ne 0 ]
   [[ "$output" == *"caddy"* ]]
   [ ! -f "${XDG_STATE_HOME}/harto/state.yml" ]
 }
 
-@test "plugin add is idempotent and setup runs once" {
+@test "plugin enable is idempotent and setup runs once" {
   harto_devhost_env
-  "$(harto_bin)" plugin add devhost
-  run "$(harto_bin)" plugin add devhost
+  "$(harto_bin)" plugin enable devhost
+  run "$(harto_bin)" plugin enable devhost
   [ "$status" -eq 0 ]
   [[ "$output" == *"already active"* ]]
   [[ "$output" != *"running setup"* ]]
@@ -82,10 +82,10 @@ EOF
   [[ "$output" == *"not compatible"* ]]
 }
 
-@test "plugin install points a bundled plugin at add" {
+@test "plugin install points a bundled plugin at enable" {
   run "$(harto_bin)" plugin install devhost
   [ "$status" -ne 0 ]
-  [[ "$output" == *"plugin add devhost"* ]]
+  [[ "$output" == *"plugin enable devhost"* ]]
 }
 
 @test "plugin install from a git url is not available yet" {

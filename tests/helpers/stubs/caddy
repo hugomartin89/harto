@@ -10,6 +10,9 @@ case "$cmd" in
     exit "${HARTO_STUB_CADDY_VALIDATE:-0}"
     ;;
   reload)
+    if [ -n "${HARTO_STUB_CADDY_RELOAD_MSG:-}" ]; then
+      printf '%s\n' "$HARTO_STUB_CADDY_RELOAD_MSG" >&2
+    fi
     exit "${HARTO_STUB_CADDY_RELOAD:-0}"
     ;;
   *)

@@ -109,7 +109,7 @@ harto_prompt() {
   fi
 }
 
-harto_run_privileged() {
+_harto_privileged_prepare() {
   local explanation="$1"
   shift
   local arg
@@ -125,14 +125,30 @@ harto_run_privileged() {
 
   if harto_is_dry_run; then
     printf '[dry-run] would run the privileged command above\n' >&2
-    return 0
+    return 1
   fi
 
   if ! harto_confirm "Apply this privileged change?"; then
     harto_die "privileged operation declined" 1
   fi
+  return 0
+}
 
+harto_run_privileged() {
+  local explanation="$1"
+  shift
+
+  _harto_privileged_prepare "$explanation" "$@" || return 0
   sudo "$@"
+}
+
+harto_run_privileged_input() {
+  local input="$1"
+  local explanation="$2"
+  shift 2
+
+  _harto_privileged_prepare "$explanation" "$@" || return 0
+  printf '%s\n' "$input" | sudo "$@"
 }
 
 harto_valid_name() {

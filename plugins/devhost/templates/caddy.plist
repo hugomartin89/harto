@@ -23,5 +23,14 @@
   <string>__LOG_DIR__/caddy.out.log</string>
   <key>StandardErrorPath</key>
   <string>__LOG_DIR__/caddy.err.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/var/root</string>
+    <key>XDG_CONFIG_HOME</key>
+    <string>/var/root/.config</string>
+    <key>XDG_DATA_HOME</key>
+    <string>/var/root/.local/share</string>
+  </dict>
 </dict>
 </plist>

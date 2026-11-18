@@ -3,13 +3,13 @@
 ## A plugin
 
 ```bash
-harto plugin uninstall <name>
-harto --dry-run plugin uninstall <name>
+harto plugin disable <name>
+harto --dry-run plugin disable <name>
 ```
 
 `--dry-run` lists what the plugin's uninstall hook would remove and leaves those files in place. The hook is part of the plugin. Which files it deletes, and which questions it asks, are documented in that plugin.
 
-Uninstall removes the plugin from HARTO's state. It does not delete the plugin source in the git checkout, other plugins' directories, or programs you installed separately.
+Disable removes the plugin from HARTO's state. It does not delete the plugin source in the git checkout, other plugins' directories, or programs you installed separately.
 
 ## The framework
 

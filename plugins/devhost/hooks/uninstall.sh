@@ -20,15 +20,15 @@ remove_path() {
   rm -rf "$path"
 }
 
-harto_log_info "devhost uninstall removes generated LaunchAgents, proxy config, and dnsmasq config."
+harto_log_info "devhost disable removes the Caddy and dnsmasq LaunchDaemons, proxy config, and dnsmasq config."
 harto_log_info "It does not remove Caddy, dnsmasq, Colima, the mkcert authority, or unrelated files."
 
 if harto_devhost_configured; then
   harto_service_down || true
 fi
 
-remove_path "$(harto_service_caddy_plist)" "Removing the Caddy LaunchAgent."
-remove_path "$(harto_service_dns_plist)" "Removing the dnsmasq LaunchAgent."
+harto_service_remove_caddy
+harto_service_remove_dns
 remove_path "${HARTO_PLUGIN_DATA_DIR}/caddy" "Removing the generated Caddyfile."
 remove_path "${HARTO_PLUGIN_DATA_DIR}/dnsmasq" "Removing the generated dnsmasq config."
 remove_path "${HARTO_PLUGIN_DATA_DIR}/logs" "Removing devhost logs."
