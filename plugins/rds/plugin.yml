@@ -1,0 +1,59 @@
+name: rds
+description: IAM auth tokens for RDS databases in a local catalog
+platforms:
+  - darwin
+dependencies:
+  - name: aws
+    command: aws
+    required: true
+    install_hint: brew install awscli
+    install_hint_url: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+  - name: curl
+    command: curl
+    required: false
+    install_hint: curl is part of macOS
+  - name: mysql
+    command: mysql
+    required: false
+    install_hint: brew install mysql-client
+  - name: psql
+    command: psql
+    required: false
+    install_hint: brew install libpq
+commands:
+  - name: setup
+    description: Choose the region and database users, and download the CA bundle
+    entrypoint: commands/setup.sh
+  - name: add
+    description: Add a database to the local catalog
+    entrypoint: commands/add.sh
+    usage: "<name> --engine mysql|postgres --profile PROFILE --reader HOST [--writer HOST]"
+  - name: remove
+    description: Remove a database from the local catalog
+    entrypoint: commands/remove.sh
+    usage: "<name>"
+  - name: list
+    description: List databases in the local catalog
+    entrypoint: commands/list.sh
+    json: true
+  - name: profile
+    description: Print an AWS SSO profile block without writing it
+    entrypoint: commands/profile.sh
+    usage: "<name>"
+  - name: token
+    description: Copy a 15-minute IAM auth token to the clipboard
+    entrypoint: commands/token.sh
+    usage: "<name> [--write] [--print]"
+  - name: connect
+    description: Open mysql or psql with a fresh IAM auth token
+    entrypoint: commands/connect.sh
+    usage: "<name> [--write] [--database NAME]"
+  - name: doctor
+    description: Report rds health without changing the system
+    entrypoint: commands/doctor.sh
+hooks:
+  install: hooks/install.sh
+  configure: commands/setup.sh
+  doctor: commands/doctor.sh
+  upgrade: hooks/upgrade.sh
+  uninstall: hooks/uninstall.sh

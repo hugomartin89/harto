@@ -28,6 +28,17 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "the generic scan allows the public RDS CA host and rejects other amazonaws hosts" {
+  local file="${BATS_TEST_TMPDIR}/sample.txt"
+  printf 'https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem\n' > "$file"
+  printf 'https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html\n' >> "$file"
+  run "${HARTO_ROOT}/scripts/check-generic.sh" --paths "$file"
+  [ "$status" -eq 0 ]
+  printf '%s.%s.%s\n' "db.cluster.rds" "amazonaws" "com" > "$file"
+  run "${HARTO_ROOT}/scripts/check-generic.sh" --paths "$file"
+  [ "$status" -ne 0 ]
+}
+
 @test "the generic scan allows local.test" {
   local file="${BATS_TEST_TMPDIR}/sample.txt"
   printf 'open https://app.local.test\n' > "$file"

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'pbcopy\n' >> "$HARTO_STUB_LOG"
+if [ -n "${HARTO_STUB_LOG:-}" ]; then
+  cat >> "$HARTO_STUB_LOG"
+else
+  cat >/dev/null
+fi

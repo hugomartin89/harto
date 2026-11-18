@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'psql %s\n' "$*" >> "$HARTO_STUB_LOG"
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'psql_pwd_set=%s\n' "${PGPASSWORD:+yes}" >> "$HARTO_STUB_LOG"
+exit 0

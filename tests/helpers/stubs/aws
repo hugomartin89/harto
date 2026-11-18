@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'aws %s\n' "$*" >> "$HARTO_STUB_LOG"
+if [ "${1:-}" = "rds" ] && [ "${2:-}" = "generate-db-auth-token" ]; then
+  if [ "${HARTO_STUB_AWS_SSO:-ok}" != "ok" ]; then
+    printf 'Error when retrieving token from sso: Token has expired\n' >&2
+    exit 255
+  fi
+  printf '%s\n' "${HARTO_STUB_AWS_TOKEN:-stub-db-auth-token}"
+  exit 0
+fi
+if [ "${1:-}" = "configure" ] && [ "${2:-}" = "list-profiles" ]; then
+  printf '%s\n' "${HARTO_STUB_AWS_PROFILES:-}"
+  exit 0
+fi
+exit 0

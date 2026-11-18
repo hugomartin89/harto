@@ -25,7 +25,9 @@ host_allowed() {
     github.com|*.github.com|\
     git-scm.com|*.git-scm.com|\
     caddyserver.com|*.caddyserver.com|\
-    thekelleys.org.uk|*.thekelleys.org.uk)
+    thekelleys.org.uk|*.thekelleys.org.uk|\
+    docs.aws.amazon.com|\
+    truststore.pki.rds.amazonaws.com)
       return 0
       ;;
   esac

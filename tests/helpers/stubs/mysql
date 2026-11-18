@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'mysql %s\n' "$*" >> "$HARTO_STUB_LOG"
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'mysql_pwd_set=%s\n' "${MYSQL_PWD:+yes}" >> "$HARTO_STUB_LOG"
+exit 0
