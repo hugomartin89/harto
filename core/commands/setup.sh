@@ -38,10 +38,8 @@ harto_cmd_setup() {
 
   if [ -n "${HARTO_LINK_NAME+x}" ]; then
     link_name=$HARTO_LINK_NAME
-  elif [ "${HARTO_YES:-0}" = "1" ]; then
-    link_name=""
   else
-    link_name=$(harto_prompt "Optional symlink name in ~/.local/bin (empty to skip; devx is a common example)" "" HARTO_LINK_NAME)
+    link_name=$(harto_prompt "Symlink name in ~/.local/bin" "harto" HARTO_LINK_NAME)
   fi
 
   if harto_is_dry_run; then

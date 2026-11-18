@@ -39,6 +39,28 @@ setup() {
   [ ! -d "${XDG_CONFIG_HOME}/harto" ]
 }
 
+@test "setup links harto unless another name is given" {
+  run "$(harto_bin)" --yes setup
+  [ "$status" -eq 0 ]
+  [ -L "${HOME}/.local/bin/harto" ]
+  [ "$(readlink "${HOME}/.local/bin/harto")" = "$(harto_bin)" ]
+}
+
+@test "setup uses HARTO_LINK_NAME when it is set" {
+  export HARTO_LINK_NAME=devx
+  run "$(harto_bin)" --yes setup
+  [ "$status" -eq 0 ]
+  [ -L "${HOME}/.local/bin/devx" ]
+  [ ! -e "${HOME}/.local/bin/harto" ]
+}
+
+@test "an empty HARTO_LINK_NAME skips the symlink" {
+  export HARTO_LINK_NAME=
+  run "$(harto_bin)" --yes setup
+  [ "$status" -eq 0 ]
+  [ ! -e "${HOME}/.local/bin/harto" ]
+}
+
 @test "setup records configuration outside the repository" {
   run "$(harto_bin)" --yes setup
   [ "$status" -eq 0 ]

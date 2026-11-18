@@ -13,7 +13,7 @@ Disable removes the plugin from HARTO's state. It does not delete the plugin sou
 
 ## The framework
 
-Remove the symlink you created, for example `~/.local/bin/devx`, and delete the config, state, and data directories from [configuration.md](configuration.md) after you have uninstalled plugins that own system files. Removing the checkout does not remove `~/.config/harto`.
+Remove the symlink setup created, `~/.local/bin/harto`, or the other name you chose. Then delete the config, state, and data directories from [configuration.md](configuration.md) after you have uninstalled plugins that own system files. Removing the checkout does not remove `~/.config/harto`.
 
 To drop the commit-message hook:
 

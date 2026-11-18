@@ -54,7 +54,7 @@ harto doctor
 devx doctor
 ```
 
-`harto setup` can create that symlink for you. Leave the name empty to skip it. With `--yes`, setup does not invent a name.
+`harto setup` creates `~/.local/bin/harto`. Press Enter to accept that name, or type another one. Set `HARTO_LINK_NAME` to choose a name without a prompt. An empty `HARTO_LINK_NAME` skips the symlink. `--yes` accepts `harto`.
 
 ## First configuration
 
