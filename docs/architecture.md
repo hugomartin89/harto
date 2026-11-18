@@ -44,5 +44,7 @@ docs/                      framework documentation
 - `HARTO_PLUGIN_DATA_DIR`
 - `HARTO_CONFIG_DIR`, `HARTO_STATE_DIR`, `HARTO_DATA_DIR`
 - `HARTO_YES`, `HARTO_DRY_RUN`, `HARTO_DEBUG`
+- `HARTO_NONINTERACTIVE`, `HARTO_OUTPUT` (`text` or `json`)
+- `HARTO_INVOCATION`, the command line after global flags, used in messages
 
 Public shell functions use the `harto_` prefix. The manifest contract is [plugin-development.md](plugin-development.md).

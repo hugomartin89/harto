@@ -95,6 +95,9 @@ harto_plugin_validate() {
       harto_log_error "plugin ${name} has an invalid command entrypoint: ${entry}"
       failed=1
     fi
+    _harto_plugin_field_tag "$manifest" "$index" usage '!!str' || failed=1
+    _harto_plugin_field_tag "$manifest" "$index" privileged '!!bool' || failed=1
+    _harto_plugin_field_tag "$manifest" "$index" json '!!bool' || failed=1
     index=$((index + 1))
   done
 
@@ -110,6 +113,43 @@ harto_plugin_validate() {
   done
 
   return "$failed"
+}
+
+_harto_plugin_field_tag() {
+  local manifest="$1"
+  local index="$2"
+  local field="$3"
+  local want="$4"
+  local tag command_name
+
+  tag=$(yq eval ".commands[${index}].${field} | tag" "$manifest")
+  if [ "$tag" = "!!null" ] || [ "$tag" = "$want" ]; then
+    return 0
+  fi
+  command_name=$(yq eval ".commands[${index}].name" "$manifest")
+  harto_log_error "command ${command_name} in ${manifest} has an invalid ${field}"
+  return 1
+}
+
+harto_plugin_command_field() {
+  local manifest="$1"
+  local command_name="$2"
+  local field="$3"
+
+  CMD="$command_name" yq eval ".commands[] | select(.name == strenv(CMD)) | .${field} // \"\"" "$manifest"
+}
+
+harto_plugin_command_line() {
+  local plugin="$1"
+  local manifest="$2"
+  local index="$3"
+  local command_name usage
+
+  command_name=$(yq eval ".commands[${index}].name" "$manifest")
+  usage=$(yq eval ".commands[${index}].usage // \"\"" "$manifest")
+  printf '  %s %s' "$plugin" "$command_name"
+  [ -z "$usage" ] || printf ' %s' "$usage"
+  printf '\n    %s\n' "$(yq eval ".commands[${index}].description" "$manifest")"
 }
 
 harto_plugin_version_compatible() {
@@ -151,6 +191,11 @@ harto_plugin_summary() {
   sed -n 's/^# harto-summary: //p' "$file" | head -n 1
 }
 
+harto_command_output() {
+  local file="$1"
+  sed -n 's/^# harto-output: //p' "$file" | head -n 1
+}
+
 harto_plugin_run() {
   local name="$1"
   local rel="$2"
@@ -174,6 +219,7 @@ harto_plugin_run() {
     export HARTO_LIB HARTO_ROOT HARTO_VERSION HARTO_PROG
     export HARTO_CONFIG_DIR HARTO_STATE_DIR HARTO_DATA_DIR
     export HARTO_YES HARTO_DRY_RUN HARTO_DEBUG
+    export HARTO_NONINTERACTIVE HARTO_OUTPUT HARTO_INVOCATION
     exec bash "$script" "$@"
   )
 }
@@ -187,6 +233,7 @@ harto_plugin_dispatch() {
   harto_plugin_validate "$dir" || harto_die "plugin ${name} failed validation" 1
 
   if [ $# -eq 0 ]; then
+    harto_output_text_only "${name}"
     harto_plugin_print_help "$name"
     return 0
   fi
@@ -194,12 +241,15 @@ harto_plugin_dispatch() {
   sub="$1"
   shift
   entry=$(harto_plugin_command_entry "$name" "$sub") || harto_die "unknown command: ${name} ${sub}" 2
+  if harto_output_is_json && [ "$(harto_plugin_command_field "${dir}/plugin.yml" "$sub" json)" != "true" ]; then
+    harto_die "${name} ${sub} does not support --json" 2
+  fi
   harto_plugin_run "$name" "$entry" "$@"
 }
 
 harto_plugin_print_help() {
   local name="$1"
-  local manifest count index command_name description
+  local manifest count index description
 
   manifest=$(harto_plugin_manifest "$name") || return 1
   description=$(yq eval '.description // ""' "$manifest")
@@ -208,9 +258,7 @@ harto_plugin_print_help() {
   count=$(yq eval '.commands // [] | length' "$manifest")
   index=0
   while [ "$index" -lt "$count" ]; do
-    command_name=$(yq eval ".commands[${index}].name" "$manifest")
-    description=$(yq eval ".commands[${index}].description" "$manifest")
-    printf '  %s %s\n    %s\n' "$name" "$command_name" "$description"
+    harto_plugin_command_line "$name" "$manifest" "$index"
     index=$((index + 1))
   done
 }

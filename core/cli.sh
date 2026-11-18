@@ -24,6 +24,12 @@ harto_cli_main() {
       --debug)
         HARTO_DEBUG=1
         ;;
+      --non-interactive)
+        HARTO_NONINTERACTIVE=1
+        ;;
+      --json)
+        HARTO_OUTPUT=json
+        ;;
       --)
         shift
         while [ $# -gt 0 ]; do
@@ -42,12 +48,18 @@ harto_cli_main() {
   export HARTO_YES="${HARTO_YES:-0}"
   export HARTO_DRY_RUN="${HARTO_DRY_RUN:-0}"
   export HARTO_DEBUG="${HARTO_DEBUG:-0}"
+  export HARTO_NONINTERACTIVE="${HARTO_NONINTERACTIVE:-0}"
+  export HARTO_OUTPUT="${HARTO_OUTPUT:-text}"
 
   if [ "${#args[@]}" -eq 0 ]; then
     set --
+    HARTO_INVOCATION=""
   else
     set -- "${args[@]}"
+    HARTO_INVOCATION=$(printf '%q ' "$@")
+    HARTO_INVOCATION="${HARTO_INVOCATION% }"
   fi
+  export HARTO_INVOCATION
 
   harto_config_init
   harto_platform_require
@@ -69,6 +81,9 @@ harto_cli_main() {
   esac
 
   if [ -f "$HARTO_ROOT/core/commands/${cmd}.sh" ]; then
+    if harto_output_is_json && [ "$(harto_command_output "$HARTO_ROOT/core/commands/${cmd}.sh")" != "json" ]; then
+      harto_die "${cmd} does not support --json" 2
+    fi
     # shellcheck source=/dev/null
     . "$HARTO_ROOT/core/commands/${cmd}.sh"
     "harto_cmd_${cmd}" "$@"

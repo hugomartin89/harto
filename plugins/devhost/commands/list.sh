@@ -7,4 +7,8 @@ set -euo pipefail
 
 [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} devhost list" 2
 harto_devhost_require_config
-harto_devhost_list_routes
+if harto_output_is_json; then
+  harto_devhost_list_routes | harto_output_records array
+else
+  harto_devhost_list_routes
+fi

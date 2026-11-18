@@ -98,7 +98,7 @@ harto plugin upgrade <name>
 harto plugin doctor <name>
 ```
 
-`harto help` also lists each installed plugin's commands. Global flags: `--yes`, `--dry-run`, `--debug`. `--dry-run` prints the change it would make and does not present that change as done.
+`harto help` also lists each installed plugin's commands. Global flags: `--yes`, `--dry-run`, `--debug`, `--non-interactive`, `--json`. `--dry-run` prints the change it would make and does not present that change as done. Agents and scripts should follow [docs/agents.md](docs/agents.md).
 
 ## Tests
 

@@ -4,6 +4,10 @@ harto_is_dry_run() {
   [ "${HARTO_DRY_RUN:-0}" = "1" ]
 }
 
+harto_is_noninteractive() {
+  [ "${HARTO_NONINTERACTIVE:-0}" = "1" ]
+}
+
 harto_atomic_write() {
   local dest="$1"
   local dir tmp
@@ -76,6 +80,9 @@ harto_confirm() {
     printf '[dry-run] would ask: %s\n' "$prompt" >&2
     return 0
   fi
+  if harto_is_noninteractive; then
+    harto_die "confirmation required: ${prompt} Pass --yes to accept." 3
+  fi
 
   printf '%s [y/N] ' "$prompt" >&2
   IFS= read -r reply || true
@@ -88,7 +95,16 @@ harto_confirm() {
 harto_prompt() {
   local prompt="$1"
   local default="${2:-}"
+  local hint="${3:-}"
   local reply
+
+  if harto_is_noninteractive; then
+    if [ "${HARTO_YES:-0}" = "1" ]; then
+      printf '%s\n' "$default"
+      return 0
+    fi
+    harto_die "input required: ${prompt}${hint:+. Set ${hint}}" 2
+  fi
 
   if [ -n "$default" ]; then
     printf '%s [%s]: ' "$prompt" "$default" >&2
@@ -126,6 +142,9 @@ _harto_privileged_prepare() {
   if harto_is_dry_run; then
     printf '[dry-run] would run the privileged command above\n' >&2
     return 1
+  fi
+  if harto_is_noninteractive; then
+    harto_die "this step needs sudo and a person. Run it without --non-interactive: ${HARTO_PROG:-harto} ${HARTO_INVOCATION:-}" 3
   fi
 
   if ! harto_confirm "Apply this privileged change?"; then

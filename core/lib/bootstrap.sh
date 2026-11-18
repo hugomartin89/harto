@@ -3,6 +3,8 @@
 
 # shellcheck source=logging.sh
 . "$HARTO_LIB/logging.sh"
+# shellcheck source=output.sh
+. "$HARTO_LIB/output.sh"
 # shellcheck source=platform.sh
 . "$HARTO_LIB/platform.sh"
 # shellcheck source=utils.sh

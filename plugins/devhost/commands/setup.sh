@@ -10,6 +10,7 @@ answer() {
   local is_set="$2"
   local prompt="$3"
   local fallback="$4"
+  local hint="${5:-}"
 
   if [ "$is_set" = "yes" ]; then
     printf '%s\n' "$provided"
@@ -19,7 +20,7 @@ answer() {
     printf '%s\n' "$fallback"
     return 0
   fi
-  harto_prompt "$prompt" "$fallback"
+  harto_prompt "$prompt" "$fallback" "$hint"
 }
 
 harto_dep_check_core || exit 1
@@ -28,15 +29,16 @@ harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || exit 1
 if [ -n "${HARTO_DEVHOST_DOMAIN+x}" ]; then
   domain=$(answer "$HARTO_DEVHOST_DOMAIN" yes "" "")
 else
-  domain=$(answer "" no "Base domain (examples: local.test, dev.test)" "")
+  domain=$(answer "" no "Base domain (examples: local.test, dev.test)" "" HARTO_DEVHOST_DOMAIN)
 fi
+[ -n "$domain" ] || harto_die "base domain is required. Set HARTO_DEVHOST_DOMAIN." 2
 harto_devhost_domain_accept "$domain"
 
 harto_log_info "Suggested reverse proxy: caddy (https://caddyserver.com)"
 if [ -n "${HARTO_DEVHOST_PROXY+x}" ]; then
   proxy=$(answer "$HARTO_DEVHOST_PROXY" yes "" "")
 else
-  proxy=$(answer "" no "Reverse proxy" "caddy")
+  proxy=$(answer "" no "Reverse proxy" "caddy" HARTO_DEVHOST_PROXY)
 fi
 if [ "$proxy" != "caddy" ]; then
   harto_die "unsupported proxy: ${proxy}. The available proxy is caddy." 1
@@ -45,7 +47,7 @@ fi
 if [ -n "${HARTO_DEVHOST_ADMIN+x}" ]; then
   admin=$(answer "$HARTO_DEVHOST_ADMIN" yes "" "")
 else
-  admin=$(answer "" no "Proxy admin address bound to loopback" "127.0.0.1:2019")
+  admin=$(answer "" no "Proxy admin address bound to loopback" "127.0.0.1:2019" HARTO_DEVHOST_ADMIN)
 fi
 harto_devhost_admin_check "$admin" || harto_die "admin address must look like 127.0.0.1:2019" 1
 if ! harto_devhost_admin_free "${admin##*:}"; then
@@ -55,7 +57,7 @@ fi
 if [ -n "${HARTO_DEVHOST_DNS+x}" ]; then
   dns=$(answer "$HARTO_DEVHOST_DNS" yes "" "")
 else
-  dns=$(answer "" no "DNS mode: dnsmasq or none" "dnsmasq")
+  dns=$(answer "" no "DNS mode: dnsmasq or none" "dnsmasq" HARTO_DEVHOST_DNS)
 fi
 case "$dns" in
   dnsmasq|none) ;;
@@ -65,7 +67,7 @@ esac
 if [ -n "${HARTO_DEVHOST_HTTPS+x}" ]; then
   https=$(answer "$HARTO_DEVHOST_HTTPS" yes "" "")
 else
-  https=$(answer "" no "HTTPS mode: mkcert or off" "mkcert")
+  https=$(answer "" no "HTTPS mode: mkcert or off" "mkcert" HARTO_DEVHOST_HTTPS)
 fi
 case "$https" in
   mkcert|off) ;;
@@ -78,7 +80,7 @@ fi
 if [ -n "${HARTO_DEVHOST_AUTOSTART+x}" ]; then
   autostart=$(answer "$HARTO_DEVHOST_AUTOSTART" yes "" "")
 else
-  autostart=$(answer "" no "Start services at login? yes or no" "no")
+  autostart=$(answer "" no "Start services at login? yes or no" "no" HARTO_DEVHOST_AUTOSTART)
 fi
 case "$autostart" in
   yes|true) autostart="true" ;;

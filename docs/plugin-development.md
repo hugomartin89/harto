@@ -24,6 +24,9 @@ commands:
   - name: run
     description: Do the thing
     entrypoint: commands/run.sh
+    usage: "<name> [--force]"
+    privileged: false
+    json: false
 hooks:
   install: hooks/install.sh
   configure: commands/run.sh
@@ -33,6 +36,8 @@ hooks:
 ```
 
 `version`, `harto.min`, and `harto.max` are `MAJOR.MINOR.PATCH`. `max` is inclusive. Entry points and hooks are relative paths inside the plugin directory. `..` and absolute paths are rejected. A command entry point must exist.
+
+`usage`, `privileged`, and `json` are optional. `usage` is the argument text shown after the command name in help. `privileged: true` means the command can reach `harto_run_privileged`. `json: true` means the command honors `--json`. HARTO rejects `--json` for a command that does not declare it. `privileged` and `json` must be booleans. All three appear in `harto help --json`.
 
 `required: true` dependencies are checked by `harto plugin enable` and must also be checked by the plugin's setup command. A missing required dependency stops the command before it writes configuration or records the plugin as active. Optional dependencies are warnings.
 
@@ -63,6 +68,8 @@ set -euo pipefail
 `common.sh` loads `$HARTO_LIB/bootstrap.sh` when the core functions are not already defined. Do not source another plugin. Do not `eval` configuration. Call `harto_run_privileged` for the one command that needs `sudo`, and tell the user which file changes.
 
 Use `harto_atomic_write` for config files. Use `--dry-run` (`HARTO_DRY_RUN=1`) on anything that changes the system, and do not claim the change happened.
+
+Ask for input only through `harto_prompt` and `harto_confirm`, so `--non-interactive` can stop instead of waiting. Pass `harto_prompt` a third argument that names the variable or option that answers it. A `json: true` command checks `harto_output_is_json` and pipes its `key=value` output through `harto_output_records`. [agents.md](agents.md) is the caller's side of that contract.
 
 ## Discovery
 

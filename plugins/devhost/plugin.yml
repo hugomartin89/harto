@@ -32,24 +32,31 @@ commands:
   - name: setup
     description: Choose a base domain, proxy, DNS, and HTTPS
     entrypoint: commands/setup.sh
+    privileged: true
   - name: up
     description: Start the proxy and DNS services
     entrypoint: commands/up.sh
+    privileged: true
   - name: down
     description: Stop the proxy and DNS services
     entrypoint: commands/down.sh
+    privileged: true
   - name: add
     description: Add or update a route
     entrypoint: commands/add.sh
+    usage: "<name> (--port PORT | --target URL)"
   - name: remove
     description: Remove a route
     entrypoint: commands/remove.sh
+    usage: "<name>"
   - name: list
     description: List routes and whether each one is applied and responding
     entrypoint: commands/list.sh
+    json: true
   - name: status
     description: Show the proxy, DNS, and service state
     entrypoint: commands/status.sh
+    json: true
   - name: logs
     description: Show proxy logs
     entrypoint: commands/logs.sh
@@ -59,6 +66,8 @@ commands:
   - name: config
     description: Show or update devhost configuration
     entrypoint: commands/config.sh
+    usage: "show | set domain <domain>"
+    privileged: true
 hooks:
   install: hooks/install.sh
   configure: commands/setup.sh
