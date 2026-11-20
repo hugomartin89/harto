@@ -57,3 +57,4 @@ hooks:
   doctor: commands/doctor.sh
   upgrade: hooks/upgrade.sh
   uninstall: hooks/uninstall.sh
+  complete: hooks/complete.sh

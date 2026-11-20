@@ -96,3 +96,37 @@ setup() {
   [[ "$output" == *"mysql_pwd_set=yes"* ]]
   [[ "$output" != *"MYSQL_PWD="* ]]
 }
+
+@test "completion lists catalog names and engines, not tokens" {
+  run "$(harto_bin)" --non-interactive completion query -- 2 rds remove ""
+  [ "$status" -eq 0 ]
+  [ "$output" = "app" ]
+
+  run "$(harto_bin)" --non-interactive completion query -- 2 rds token ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"app"* ]]
+  [[ "$output" == *"--write"* ]]
+  [[ "$output" == *"--print"* ]]
+  [[ "$output" != *"stub-db-auth-token"* ]]
+  [[ "$output" != *"db.example.test"* ]]
+
+  run "$(harto_bin)" --non-interactive completion query -- 4 rds add app --engine ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"mysql"* ]]
+  [[ "$output" == *"postgres"* ]]
+
+  HARTO_STUB_AWS_PROFILES=$'readonly\npersonal'
+  export HARTO_STUB_AWS_PROFILES
+  run "$(harto_bin)" --non-interactive completion query -- 4 rds add app --profile ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"readonly"* ]]
+  [[ "$output" == *"personal"* ]]
+}
+
+@test "completion does not create the catalog" {
+  rm -f "${XDG_CONFIG_HOME}/harto/plugins/rds/databases.yml"
+  run "$(harto_bin)" --non-interactive completion query -- 2 rds remove ""
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  [ ! -e "${XDG_CONFIG_HOME}/harto/plugins/rds/databases.yml" ]
+}
