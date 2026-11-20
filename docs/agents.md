@@ -22,7 +22,7 @@ Pass `--non-interactive` on every call. HARTO then never waits on stdin:
 
 ## Read structured output
 
-`--json` is accepted only by commands with `json: true` in the catalog. Any other command exits with code 2. Every JSON value is a string.
+`--json` is accepted only by commands with `json: true` in the catalog. Any other command exits with code 2. Every JSON value is a string. Messages on stderr may include color when that stream is a terminal. A pipe and `--json` stay plain text.
 
 ## Exit codes
 
