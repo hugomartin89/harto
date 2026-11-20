@@ -96,6 +96,15 @@ harto plugin doctor <name>
 
 `harto help` also lists each installed plugin's commands. Global flags: `--yes`, `--dry-run`, `--debug`, `--non-interactive`, `--json`. `--dry-run` prints the change it would make and does not present that change as done. Agents and scripts should follow [docs/agents.md](docs/agents.md).
 
+## Completion
+
+```bash
+source <(harto completion zsh)
+source <(harto completion bash)
+```
+
+The script completes the name used to generate it. A plugin adds candidates with `hooks.complete`, described in [docs/plugin-development.md](docs/plugin-development.md).
+
 ## Tests
 
 ```bash

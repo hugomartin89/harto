@@ -82,3 +82,50 @@ harto_plugin_upgrade() {
   fi
   harto_log_info "upgraded plugin ${name}"
 }
+
+harto_complete_plugin() {
+  local idx="$1"
+  shift
+  local -a words=()
+  local cmd_at sub_at sub name_at
+
+  if [ "$#" -gt 0 ]; then
+    words=("$@")
+  fi
+  cmd_at=$(harto_completion_command_index "${words[@]+"${words[@]}"}") || return 0
+  sub_at=$((cmd_at + 1))
+  if [ "$idx" -eq "$sub_at" ]; then
+    printf '%s\n' list info enable install disable upgrade doctor
+    return 0
+  fi
+  [ "$idx" -gt "$sub_at" ] || return 0
+  [ "$sub_at" -lt ${#words[@]} ] || return 0
+  sub=${words[$sub_at]}
+  name_at=$((sub_at + 1))
+  [ "$idx" -eq "$name_at" ] || return 0
+  case "$sub" in
+    enable) _harto_complete_plugin_names repo ;;
+    info|disable|upgrade|doctor) _harto_complete_plugin_names all ;;
+  esac
+}
+
+_harto_complete_plugin_names() {
+  local mode="$1"
+  local dir name seen
+
+  seen=" "
+  while IFS= read -r dir; do
+    [ -n "$dir" ] || continue
+    name=$(basename "$dir")
+    case "$seen" in
+      *" ${name} "*) continue ;;
+    esac
+    seen="${seen}${name} "
+    if [ "$mode" = "repo" ] && ! harto_plugin_in_repository "$name"; then
+      continue
+    fi
+    printf '%s\n' "$name"
+  done <<EOF
+$(harto_plugin_each_dir)
+EOF
+}

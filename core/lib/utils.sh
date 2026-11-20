@@ -174,3 +174,22 @@ harto_valid_name() {
   local value="$1"
   printf '%s\n' "$value" | grep -Eq '^[a-z][a-z0-9-]*$'
 }
+
+# Prints the index of the first completion word that is not a global flag.
+harto_completion_command_index() {
+  local i=0
+  local word
+
+  for word in "$@"; do
+    case "$word" in
+      --yes|-y|--dry-run|--debug|--non-interactive|--json)
+        i=$((i + 1))
+        ;;
+      *)
+        printf '%s\n' "$i"
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}

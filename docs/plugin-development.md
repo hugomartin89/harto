@@ -51,6 +51,25 @@ Entry points and hooks are relative paths inside the plugin directory. `..` and 
 
 Migrations live in `migrations/NNNN-description.sh`. HARTO runs each one once, records the numeric id in state, and backs up the plugin config directory first. A migration is idempotent. The plugin is recorded as active after enable finishes, and before setup runs.
 
+## Completion
+
+`complete` is an optional hook. It does not run during enable, disable, doctor, or upgrade. `harto completion bash` and `harto completion zsh` print the script a shell loads once. That script calls `harto completion query` and filters the candidates by the prefix the person has typed.
+
+```yaml
+hooks:
+  complete: hooks/complete.sh
+```
+
+HARTO runs the hook when the cursor is past the plugin subcommand:
+
+```bash
+hooks/complete.sh <index> <word>...
+```
+
+`index` is the cursor, starting at 0, in that word list. The list is the command line after the program name, including leading global flags: `--yes`, `-y`, `--dry-run`, `--debug`, `--non-interactive`, and `--json`. `harto_completion_command_index` prints the index of the first word that is not one of those flags.
+
+Print one candidate per line on stdout. A candidate is a single shell word. Print every candidate for that cursor position. Exit 0 and print nothing when there is nothing to add, including when a lookup fails. Do not write files, prompt, or print secret values.
+
 ## Command process
 
 Start a command with:

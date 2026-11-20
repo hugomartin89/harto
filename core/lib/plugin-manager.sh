@@ -222,7 +222,7 @@ _harto_plugin_check_hook() {
 $line
 EOF
   case "$hook" in
-    install|configure|doctor|upgrade|uninstall) ;;
+    install|configure|doctor|upgrade|uninstall|complete) ;;
     *) return 0 ;;
   esac
   if ! harto_plugin_path_safe "$path" || [ ! -f "${dir}/${path}" ]; then
