@@ -5,10 +5,10 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-status=0
+files=()
 while IFS= read -r file; do
   [ -n "$file" ] || continue
-  shellcheck --shell=bash --severity=warning "$file" || status=1
+  files+=("$file")
 done <<EOF
 $(find bin core plugins scripts .githooks tests/helpers \
   -type f \
@@ -19,4 +19,6 @@ $(find bin core plugins scripts .githooks tests/helpers \
   ! -name '*.md' \
   ! -name '*.bash')
 EOF
-exit "$status"
+
+[ "${#files[@]}" -gt 0 ] || exit 0
+exec shellcheck --shell=bash --severity=warning "${files[@]}"
