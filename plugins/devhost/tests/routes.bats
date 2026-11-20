@@ -82,3 +82,36 @@ EOF
   [[ "$output" == *"app.local.test"* ]]
   [[ "$output" != *"0.0.0.0"* ]]
 }
+
+@test "completion lists route names without probing them" {
+  "$(harto_bin)" devhost add app --port 8080
+  : > "$HARTO_STUB_LOG"
+  run "$(harto_bin)" --non-interactive completion query -- 2 devhost remove ""
+  [ "$status" -eq 0 ]
+  [ "$output" = "app" ]
+  if grep -q curl "$HARTO_STUB_LOG"; then
+    false
+  fi
+
+  run "$(harto_bin)" --non-interactive completion query -- 2 devhost add ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"app"* ]]
+  [[ "$output" == *"--port"* ]]
+  [[ "$output" == *"--target"* ]]
+
+  run "$(harto_bin)" --non-interactive completion query -- 2 devhost config ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"show"* ]]
+  [[ "$output" == *"set"* ]]
+
+  run "$(harto_bin)" --non-interactive completion query -- 3 devhost config set ""
+  [ "$status" -eq 0 ]
+  [ "$output" = "domain" ]
+}
+
+@test "completion does not create the routes file" {
+  rm -f "${XDG_CONFIG_HOME}/harto/plugins/devhost/routes.yml"
+  run "$(harto_bin)" --non-interactive completion query -- 2 devhost remove ""
+  [ "$status" -eq 0 ]
+  [ ! -e "${XDG_CONFIG_HOME}/harto/plugins/devhost/routes.yml" ]
+}
