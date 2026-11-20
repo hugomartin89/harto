@@ -18,7 +18,7 @@ HARTO supports macOS. Other operating systems are rejected with an error. Linux 
 - [Homebrew](https://brew.sh)
 - [yq](https://github.com/mikefarah/yq) 4 or newer, the mikefarah build
 
-Development checks also use [shellcheck](https://github.com/koalaman/shellcheck) and [bats-core](https://github.com/bats-core/bats-core). They are not required to run HARTO. Licenses are in [docs/dependencies.md](docs/dependencies.md).
+Development checks also use [shellcheck](https://github.com/koalaman/shellcheck), [bats-core](https://github.com/bats-core/bats-core), and [GNU parallel](https://www.gnu.org/software/parallel/). They are not required to run HARTO. Licenses are in [docs/dependencies.md](docs/dependencies.md).
 
 ## Install the framework
 
@@ -99,7 +99,7 @@ harto plugin doctor <name>
 ## Tests
 
 ```bash
-brew install bats-core shellcheck
+brew install bats-core shellcheck parallel
 scripts/lint.sh
 scripts/test.sh
 scripts/check-generic.sh

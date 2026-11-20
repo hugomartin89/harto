@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install development tools
-        run: brew install yq shellcheck bats-core
+        run: brew install yq shellcheck bats-core parallel
       - name: Lint
         run: scripts/lint.sh
       - name: Test

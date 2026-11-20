@@ -4,11 +4,18 @@ bats_require_minimum_version 1.5.0
 
 load '../../../tests/helpers/setup'
 
+setup_file() {
+  harto_test_prepare
+  export HARTO_STUB_KEYCHAIN="${BATS_FILE_TMPDIR}/prepared/keychain"
+  export PATH="${BATS_TEST_DIRNAME}/stubs:${PATH}"
+  "$(harto_bin)" plugin enable localenv
+}
+
 setup() {
   harto_test_isolate
   export HARTO_STUB_KEYCHAIN="${BATS_TEST_TMPDIR}/keychain"
   export PATH="${BATS_TEST_DIRNAME}/stubs:${PATH}"
-  "$(harto_bin)" plugin enable localenv
+  harto_test_apply_prepared
   STORE_DIR="${XDG_CONFIG_HOME}/harto/plugins/localenv"
   KEY_FILE="${HARTO_STUB_KEYCHAIN}/harto-localenv.$(id -un)"
   WORK="${BATS_TEST_TMPDIR}/work"

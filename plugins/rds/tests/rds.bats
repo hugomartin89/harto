@@ -4,14 +4,23 @@ bats_require_minimum_version 1.5.0
 
 load '../../../tests/helpers/setup'
 
-setup() {
-  harto_test_isolate
+setup_file() {
+  harto_test_prepare
   export HARTO_YES=1
   export HARTO_RDS_REGION=us-east-1
   export HARTO_RDS_READ_USER=reader
   export HARTO_RDS_WRITE_USER=writer
   "$(harto_bin)" plugin enable rds
   "$(harto_bin)" rds add app --engine mysql --profile readonly --reader db.example.test --writer writer.example.test
+}
+
+setup() {
+  harto_test_isolate
+  export HARTO_YES=1
+  export HARTO_RDS_REGION=us-east-1
+  export HARTO_RDS_READ_USER=reader
+  export HARTO_RDS_WRITE_USER=writer
+  harto_test_apply_prepared
   : > "$HARTO_STUB_LOG"
 }
 

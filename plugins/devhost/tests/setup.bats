@@ -1,12 +1,16 @@
 #!/usr/bin/env bats
 
 load '../../../tests/helpers/setup'
+bats_require_minimum_version 1.5.0
+
+setup_file() {
+  harto_test_prepare_devhost
+}
 
 setup() {
   harto_test_isolate
   harto_devhost_env
-  "$(harto_bin)" plugin enable devhost
-  "$(harto_bin)" devhost setup
+  harto_test_apply_prepared
 }
 
 @test "setup asks for a base domain and persists it outside the repository" {
