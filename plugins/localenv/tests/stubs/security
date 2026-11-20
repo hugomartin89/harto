@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Stub for the macOS security tool. Keeps generic passwords as files under
+# HARTO_STUB_KEYCHAIN, so tests never touch the real Keychain.
+
+[ -n "${HARTO_STUB_LOG:-}" ] && printf 'security %s\n' "${1:-}" >> "$HARTO_STUB_LOG"
+
+dir="${HARTO_STUB_KEYCHAIN:?HARTO_STUB_KEYCHAIN must be set}"
+mkdir -p "$dir"
+
+cmd="${1:-}"
+shift || true
+account=""
+service=""
+secret=""
+want_secret=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -a) account="$2"; shift 2 ;;
+    -s) service="$2"; shift 2 ;;
+    -w)
+      want_secret=1
+      if [ "$cmd" = add-generic-password ]; then
+        secret="$2"
+        shift
+      fi
+      shift
+      ;;
+    *) shift ;;
+  esac
+done
+
+file="${dir}/${service}.${account}"
+case "$cmd" in
+  add-generic-password)
+    if [ -f "$file" ]; then
+      printf 'The specified item already exists in the keychain.\n' >&2
+      exit 45
+    fi
+    printf '%s' "$secret" > "$file"
+    exit 0
+    ;;
+  find-generic-password)
+    if [ ! -f "$file" ]; then
+      printf 'The specified item could not be found in the keychain.\n' >&2
+      exit 44
+    fi
+    if [ "$want_secret" -eq 1 ]; then
+      cat "$file"
+      printf '\n'
+    fi
+    exit 0
+    ;;
+  delete-generic-password)
+    if [ ! -f "$file" ]; then
+      exit 44
+    fi
+    rm -f "$file"
+    exit 0
+    ;;
+  *)
+    printf 'stub security: unsupported command %s\n' "$cmd" >&2
+    exit 2
+    ;;
+esac

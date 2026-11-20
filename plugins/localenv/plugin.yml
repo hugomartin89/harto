@@ -1,0 +1,77 @@
+name: localenv
+description: Per-project environment variables in an INI store, encrypted with a Keychain key
+platforms:
+  - darwin
+dependencies:
+  - name: security
+    command: security
+    required: true
+    install_hint: ships with macOS
+  - name: openssl
+    command: openssl
+    required: true
+    install_hint: ships with macOS
+commands:
+  - name: setup
+    description: Create the project index and the Keychain key
+    entrypoint: commands/setup.sh
+  - name: init
+    description: Register the current directory as a project
+    entrypoint: commands/init.sh
+    usage: "<name> [--plain|--encrypt]"
+  - name: set
+    description: Set a variable in an environment
+    entrypoint: commands/set.sh
+    usage: "[--project NAME] <env> <var> <value>"
+  - name: get
+    description: Print a variable from an environment
+    entrypoint: commands/get.sh
+    usage: "[--project NAME] <env> <var>"
+  - name: unset
+    description: Remove a variable from an environment
+    entrypoint: commands/unset.sh
+    usage: "[--project NAME] <env> <var>"
+  - name: import
+    description: Copy variables from a .env file into an environment
+    entrypoint: commands/import.sh
+    usage: "[--project NAME] <env> <file>"
+  - name: start
+    description: Open your shell with the variables of an environment loaded
+    entrypoint: commands/start.sh
+    usage: "[--project NAME] <env>"
+  - name: exec
+    description: Run a command with the variables of an environment loaded
+    entrypoint: commands/exec.sh
+    usage: "[--project NAME] <env> <command> [args...]"
+  - name: which
+    description: Print the project that owns the current directory
+    entrypoint: commands/which.sh
+    usage: "[--project NAME]"
+    json: true
+  - name: list
+    description: List projects, or the environments of one project
+    entrypoint: commands/list.sh
+    usage: "[--project NAME]"
+    json: true
+  - name: show
+    description: Print the variables of an environment
+    entrypoint: commands/show.sh
+    usage: "[--project NAME] <env>"
+    json: true
+  - name: export
+    description: Print export lines for the variables of an environment
+    entrypoint: commands/export.sh
+    usage: "[--project NAME] <env>"
+  - name: remove
+    description: Remove an environment, or a whole project with --project
+    entrypoint: commands/remove.sh
+    usage: "[--project NAME] <env> | --project [NAME]"
+  - name: doctor
+    description: Report the store and project state without changing it
+    entrypoint: commands/doctor.sh
+hooks:
+  install: hooks/install.sh
+  configure: commands/setup.sh
+  doctor: commands/doctor.sh
+  upgrade: hooks/upgrade.sh
+  uninstall: hooks/uninstall.sh
