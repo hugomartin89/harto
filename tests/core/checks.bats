@@ -45,3 +45,58 @@ setup() {
   run "${HARTO_ROOT}/scripts/check-generic.sh" --paths "$file"
   [ "$status" -eq 0 ]
 }
+
+@test "the generic scan succeeds when git lists no files" {
+  mkdir -p "${BATS_TEST_TMPDIR}/bin"
+  printf '#!/bin/sh\nexit 0\n' > "${BATS_TEST_TMPDIR}/bin/git"
+  chmod +x "${BATS_TEST_TMPDIR}/bin/git"
+  run env PATH="${BATS_TEST_TMPDIR}/bin:${PATH}" "${HARTO_ROOT}/scripts/check-generic.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "the denylist scan uses only the requested paths" {
+  local listed="${BATS_TEST_TMPDIR}/listed.txt"
+  local other="${BATS_TEST_TMPDIR}/other.txt"
+  local deny="${BATS_TEST_TMPDIR}/deny"
+  printf 'hello\n' > "$listed"
+  printf 'secret-term\n' > "$other"
+  printf 'secret-term\n' > "$deny"
+  run env HARTO_DENYLIST="$deny" "${HARTO_ROOT}/scripts/check-generic.sh" --paths "$listed"
+  [ "$status" -eq 0 ]
+  run env HARTO_DENYLIST="$deny" "${HARTO_ROOT}/scripts/check-generic.sh" --paths "$other"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"forbidden term from denylist"* ]]
+}
+
+_harto_git_repo() {
+  local repo="${BATS_TEST_TMPDIR}/repo"
+  mkdir -p "$repo"
+  cd "$repo"
+  git init
+  git config user.name "Test User"
+  git config user.email "$(printf '%s@%s.%s' tester example invalid)"
+}
+
+@test "pre-commit passes when nothing is staged" {
+  _harto_git_repo
+  printf 'see %s.%s for details\n' "secret.example" "com" > bad.txt
+  run "${HARTO_ROOT}/.githooks/pre-commit"
+  [ "$status" -eq 0 ]
+}
+
+@test "pre-commit rejects a staged public host" {
+  _harto_git_repo
+  printf 'see %s.%s for details\n' "secret.example" "com" > bad.txt
+  git add bad.txt
+  run git -c "core.hooksPath=${HARTO_ROOT}/.githooks" commit -m "feat(core): add a sample"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"domain"* ]]
+}
+
+@test "pre-commit accepts a clean staged file" {
+  _harto_git_repo
+  printf 'hello\n' > clean.txt
+  git add clean.txt
+  run git -c "core.hooksPath=${HARTO_ROOT}/.githooks" commit -m "feat(core): add a sample"
+  [ "$status" -eq 0 ]
+}

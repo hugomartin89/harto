@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+
+files=()
+while IFS= read -r -d '' file; do
+  [ -n "$file" ] || continue
+  [ -f "$file" ] || continue
+  dir=$(cd "$(dirname "$file")" && pwd)
+  files+=("${dir}/$(basename "$file")")
+done < <(git diff --cached --name-only --diff-filter=ACM -z)
+
+if [ "${#files[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+exec "$root/scripts/check-generic.sh" --paths "${files[@]}"

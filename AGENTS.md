@@ -48,7 +48,7 @@ fix(core): stop setup when yq is missing
 - Exercise the public CLI. Stub processes at the system boundary, not internal functions.
 - Point `HOME` and the XDG directories at a temporary directory. Do not touch the real DNS resolver, trust store, or LaunchAgents.
 - Do not put company names, private hosts, or real environment data in code, docs, fixtures, or tests.
-- Before handing work back, run `scripts/lint.sh`, `scripts/test.sh`, and `scripts/check-generic.sh`.
+- Before handing work back, run `scripts/lint.sh` and `scripts/test.sh`. The commit hook runs `scripts/check-generic.sh` on the staged files. CI runs it on the whole tree.
 
 ## Documentation
 

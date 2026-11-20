@@ -23,6 +23,7 @@ host_allowed() {
   case "$host" in
     brew.sh|*.brew.sh|\
     github.com|*.github.com|\
+    gnu.org|*.gnu.org|\
     git-scm.com|*.git-scm.com|\
     caddyserver.com|*.caddyserver.com|\
     thekelleys.org.uk|*.thekelleys.org.uk|\
@@ -34,53 +35,66 @@ host_allowed() {
   return 1
 }
 
-scan_file() {
-  local file="$1"
-  local line_no=0 line matches match
+existing_files() {
+  local file
+  for file in "$@"; do
+    [ -f "$file" ] || continue
+    printf '%s\n' "$file"
+  done
+}
 
-  [ -f "$file" ] || return 0
+scan_text() {
+  local file line line_no match rest
+  [ "$#" -gt 0 ] || return 0
   while IFS= read -r line || [ -n "$line" ]; do
-    line_no=$((line_no + 1))
-    matches=$(printf '%s\n' "$line" | grep -Eo "$email_re" || true)
-    if [ -n "$matches" ]; then
-      printf '%s:%s: email %s\n' "$file" "$line_no" "$matches" >&2
-      failed=1
-    fi
-    matches=$(printf '%s\n' "$line" | grep -Eo "$domain_re" || true)
-    if [ -z "$matches" ]; then
-      continue
-    fi
-    while IFS= read -r match; do
-      [ -n "$match" ] || continue
-      if ! host_allowed "$match"; then
-        printf '%s:%s: domain %s\n' "$file" "$line_no" "$match" >&2
+    [ -n "$line" ] || continue
+    file=${line%%:*}
+    rest=${line#*:}
+    line_no=${rest%%:*}
+    match=${rest#*:}
+    case "$match" in
+      *@*)
+        printf '%s:%s: email %s\n' "$file" "$line_no" "$match" >&2
         failed=1
-      fi
-    done <<EOF
-$matches
+        ;;
+      *)
+        if ! host_allowed "$match"; then
+          printf '%s:%s: domain %s\n' "$file" "$line_no" "$match" >&2
+          failed=1
+        fi
+        ;;
+    esac
+  done <<EOF
+$(grep -a -n -E -o -H -e "$email_re" -e "$domain_re" -- "$@" || true)
 EOF
-  done < "$file"
 }
 
 scan_denylist() {
   local list="$1"
-  local term file
+  shift
+  local terms file term
 
+  [ "$#" -gt 0 ] || return 0
   [ -f "$list" ] || return 0
+  terms=$(mktemp)
   while IFS= read -r term || [ -n "$term" ]; do
     case "$term" in
       ''|\#*) continue ;;
     esac
-    while IFS= read -r file; do
-      [ -n "$file" ] || continue
-      if grep -F -i -n -q -- "$term" "$file"; then
-        printf '%s: forbidden term from denylist\n' "$file" >&2
-        failed=1
-      fi
-    done <<EOF
-$(list_files)
-EOF
+    printf '%s\n' "$term" >> "$terms"
   done < "$list"
+  if [ ! -s "$terms" ]; then
+    rm -f "$terms"
+    return 0
+  fi
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    printf '%s: forbidden term from denylist\n' "$file" >&2
+    failed=1
+  done <<EOF
+$(grep -a -F -i -l -f "$terms" -- "$@" || true)
+EOF
+  rm -f "$terms"
 }
 
 list_files() {
@@ -89,6 +103,8 @@ list_files() {
 
 main() {
   local files=()
+  local file present=()
+
   if [ "${1:-}" = "--paths" ]; then
     shift
     [ "$#" -gt 0 ] || { printf 'usage: %s [--paths FILE...]\n' "$(basename "$0")" >&2; exit 2; }
@@ -102,15 +118,27 @@ $(list_files)
 EOF
   fi
 
-  local file
-  for file in "${files[@]}"; do
-    scan_file "$file"
-  done
+  if [ "${#files[@]}" -eq 0 ]; then
+    return 0
+  fi
+
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    present+=("$file")
+  done <<EOF
+$(existing_files "${files[@]}")
+EOF
+
+  if [ "${#present[@]}" -eq 0 ]; then
+    return 0
+  fi
+
+  scan_text "${present[@]}"
 
   if [ -n "${HARTO_DENYLIST:-}" ]; then
-    scan_denylist "$HARTO_DENYLIST"
+    scan_denylist "$HARTO_DENYLIST" "${present[@]}"
   elif [ -f "${root}/.harto-denylist" ]; then
-    scan_denylist "${root}/.harto-denylist"
+    scan_denylist "${root}/.harto-denylist" "${present[@]}"
   fi
 
   return "$failed"
