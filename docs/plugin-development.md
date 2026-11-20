@@ -68,7 +68,7 @@ hooks/complete.sh <index> <word>...
 
 `index` is the cursor, starting at 0, in that word list. The list is the command line after the program name, including leading global flags: `--yes`, `-y`, `--dry-run`, `--debug`, `--non-interactive`, and `--json`. `harto_completion_command_index` prints the index of the first word that is not one of those flags.
 
-Print one candidate per line on stdout. A candidate is a single shell word. Print every candidate for that cursor position. Exit 0 and print nothing when there is nothing to add, including when a lookup fails. Do not write files, prompt, or print secret values.
+Print one candidate per line on stdout. A candidate is a single shell word. A tab after the word is an optional description: zsh shows it, and bash inserts only the word. Print every candidate for that cursor position. Exit 0 and print nothing when there is nothing to add, including when a lookup fails. Do not write files, prompt, or print secret values.
 
 ## Command process
 

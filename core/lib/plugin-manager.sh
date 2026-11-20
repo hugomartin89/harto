@@ -25,6 +25,19 @@ harto_plugin_manifest() {
   printf '%s/config.yml\n' "$dir"
 }
 
+harto_plugin_description() {
+  local name="$1"
+  local manifest record description
+
+  manifest=$(harto_plugin_manifest "$name") || return 0
+  record=$(harto_plugin_record_for "$manifest") || return 0
+  description=$(harto_plugin_record_value "$record" description || true)
+  case "$description" in
+    ""|null) return 0 ;;
+  esac
+  printf '%s\n' "$description"
+}
+
 harto_plugin_each_dir() {
   local root dir
   for root in "$HARTO_ROOT/plugins" "${HARTO_DATA_DIR}/plugins"; do

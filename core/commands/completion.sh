@@ -103,16 +103,22 @@ _harto_completion_query() {
 }
 
 _harto_completion_global_flags() {
-  printf '%s\n' --yes -y --dry-run --debug --non-interactive --json
+  harto_completion_candidate --yes "Accept the suggested answer"
+  harto_completion_candidate -y "Accept the suggested answer"
+  harto_completion_candidate --dry-run "Report the change without applying it"
+  harto_completion_candidate --debug "Print debug messages"
+  harto_completion_candidate --non-interactive "Never wait for input"
+  harto_completion_candidate --json "Print JSON instead of text"
 }
 
 _harto_completion_commands() {
-  local file name dir seen
+  local file name dir seen description
 
   for file in "$HARTO_ROOT/core/commands"/*.sh; do
     [ -f "$file" ] || continue
     name=$(basename "$file" .sh)
-    printf '%s\n' "$name"
+    description=$(harto_plugin_summary "$file")
+    harto_completion_candidate "$name" "$description"
   done
 
   seen=" "
@@ -123,7 +129,7 @@ _harto_completion_commands() {
       *" ${name} "*) continue ;;
     esac
     seen="${seen}${name} "
-    printf '%s\n' "$name"
+    harto_completion_candidate "$name" "$(harto_plugin_description "$name")"
   done <<EOF
 $(harto_plugin_each_dir)
 EOF
@@ -146,17 +152,19 @@ _harto_completion_plugin() {
 
 _harto_completion_plugin_commands() {
   local name="$1"
-  local manifest record line kind cname
+  local manifest record line kind
+  local cname _entry _usage _utag _ptag _jtag _pval _jval desc
 
   manifest=$(harto_plugin_manifest "$name") || return 0
   record=$(harto_plugin_record_for "$manifest") || return 0
   while IFS= read -r line || [ -n "$line" ]; do
     kind=${line%%$'\037'*}
     [ "$kind" = command ] || continue
-    cname=${line#*$'\037'}
-    cname=${cname%%$'\037'*}
+    IFS=$'\037' read -r kind cname _entry _usage _utag _ptag _jtag _pval _jval desc <<EOF
+$line
+EOF
     [ -n "$cname" ] || continue
-    printf '%s\n' "$cname"
+    harto_completion_candidate "$cname" "$desc"
   done <<EOF
 $record
 EOF
@@ -190,7 +198,7 @@ _harto_completion_script_bash() {
   printf '# Load with: source <(%s completion bash)\n' "$HARTO_PROG"
   cat <<'EOF'
 _harto_completion() {
-  local idx cur out noglob
+  local idx cur out noglob plain
   local -a words
   words=()
   if [ "${#COMP_WORDS[@]}" -gt 1 ]; then
@@ -203,12 +211,13 @@ _harto_completion() {
   done
   cur=${words[$idx]}
   out=$(command "${COMP_WORDS[0]}" --non-interactive completion query -- "$idx" "${words[@]}" 2>/dev/null) || return 0
+  plain=$(printf '%s\n' "$out" | awk -F '\t' 'NF { print $1 }')
   case $- in
     *f*) noglob=1 ;;
     *) noglob=0; set -f ;;
   esac
   local IFS=$'\n'
-  COMPREPLY=( $(compgen -W "$out" -- "$cur") )
+  COMPREPLY=( $(compgen -W "$plain" -- "$cur") )
   [ "$noglob" -eq 1 ] || set +f
 }
 EOF
@@ -221,8 +230,8 @@ _harto_completion_script_zsh() {
   cat <<'EOF'
 _harto_completion() {
   emulate -L zsh
-  local idx out item
-  local -a rest candidates filtered
+  local idx out item word desc
+  local -a rest candidates matches descs
   idx=$((CURRENT - 2))
   (( idx < 0 )) && return 0
   rest=("${words[@]:1}")
@@ -231,15 +240,24 @@ _harto_completion() {
   fi
   out="$(command "${words[1]}" --non-interactive completion query -- "$idx" "${rest[@]}" 2>/dev/null)" || return 0
   candidates=("${(f)out}")
-  filtered=()
+  matches=()
+  descs=()
   for item in "${candidates[@]}"; do
-    [[ -n "$item" ]] && filtered+=("$item")
+    [[ -n "$item" ]] || continue
+    word=${item%%$'\t'*}
+    if [[ "$item" == *$'\t'* ]]; then
+      desc=${item#*$'\t'}
+    else
+      desc=
+    fi
+    matches+=("$word")
+    descs+=("$desc")
   done
-  if (( ${#filtered[@]} == 0 )); then
+  if (( ${#matches[@]} == 0 )); then
     (( $+functions[_files] )) && _files
     return 0
   fi
-  compadd -- "${filtered[@]}"
+  compadd -d descs -- "${matches[@]}"
 }
 EOF
   printf 'if (( $+functions[compdef] )); then\n  compdef _harto_completion %q\nfi\n' "$HARTO_PROG"

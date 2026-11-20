@@ -175,6 +175,20 @@ harto_valid_name() {
   printf '%s\n' "$value" | grep -Eq '^[a-z][a-z0-9-]*$'
 }
 
+# Prints one completion candidate. A tab after the word is an optional description.
+harto_completion_candidate() {
+  local word="$1"
+  local description="${2-}"
+
+  description=${description//$'\t'/ }
+  description=${description//$'\n'/ }
+  if [ -n "$description" ]; then
+    printf '%s\t%s\n' "$word" "$description"
+  else
+    printf '%s\n' "$word"
+  fi
+}
+
 # Prints the index of the first completion word that is not a global flag.
 harto_completion_command_index() {
   local i=0

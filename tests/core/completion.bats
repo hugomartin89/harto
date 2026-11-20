@@ -7,6 +7,10 @@ setup() {
 }
 
 has_line() {
+  printf '%s\n' "$output" | awk -F '\t' '{print $1}' | grep -qx -e "$1"
+}
+
+has_described() {
   printf '%s\n' "$output" | grep -qx -e "$1"
 }
 
@@ -28,6 +32,7 @@ has_line() {
   has_line --dry-run
   has_line --non-interactive
   has_line --debug
+  has_described $'--dry-run\tReport the change without applying it'
   if printf '%s\n' "$output" | grep -qx help; then
     false
   fi
@@ -57,6 +62,17 @@ has_line() {
   if printf '%s\n' "$output" | grep -qx query; then
     false
   fi
+}
+
+@test "completion lines include the command description" {
+  run "$(harto_bin)" --non-interactive completion query -- 0 ""
+  [ "$status" -eq 0 ]
+  has_described $'help\tShow available commands'
+  has_described $'devhost\tLocal domains, HTTPS, and reverse-proxy routes'
+
+  run "$(harto_bin)" --non-interactive completion query -- 1 localenv ""
+  [ "$status" -eq 0 ]
+  has_described $'setup\tCreate the project index and the Keychain key'
 }
 
 @test "a core command without arguments adds none" {

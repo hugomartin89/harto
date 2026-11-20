@@ -124,7 +124,7 @@ _harto_complete_plugin_names() {
     if [ "$mode" = "repo" ] && ! harto_plugin_in_repository "$name"; then
       continue
     fi
-    printf '%s\n' "$name"
+    harto_completion_candidate "$name" "$(harto_plugin_description "$name")"
   done <<EOF
 $(harto_plugin_each_dir)
 EOF
