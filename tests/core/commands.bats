@@ -23,6 +23,9 @@ setup() {
   [[ "$output" == *"Usage: harto "* ]]
   [[ "$output" == *"devhost setup"* ]]
   [[ "$output" == *"plugin"* ]]
+  [[ "$output" == *$'\nCore commands:\n\n'* ]]
+  [[ "$output" == *$'\nPlugin commands:\n\n'* ]]
+  [[ "$output" == *$'\n    Show available commands\n\n'* ]]
 }
 
 @test "help uses the invoked executable name" {

@@ -297,7 +297,7 @@ harto_plugin_command_field() {
 harto_plugin_print_commands() {
   local plugin="$1"
   local record="$2"
-  local line kind cname entry usage utag ptag jtag pval jval desc
+  local line kind cname entry usage utag ptag jtag pval jval desc title
 
   while IFS= read -r line || [ -n "$line" ]; do
     kind=${line%%$'\037'*}
@@ -305,9 +305,9 @@ harto_plugin_print_commands() {
     IFS=$'\037' read -r kind cname entry usage utag ptag jtag pval jval desc <<EOF
 $line
 EOF
-    printf '  %s %s' "$plugin" "$cname"
-    [ -z "$usage" ] || printf ' %s' "$usage"
-    printf '\n    %s\n' "$desc"
+    title="${plugin} ${cname}"
+    [ -z "$usage" ] || title="${title} ${usage}"
+    harto_help_entry "$title" "$desc"
   done <<EOF
 $record
 EOF
@@ -445,8 +445,8 @@ harto_plugin_print_help() {
   manifest=$(harto_plugin_manifest "$name") || return 1
   record=$(harto_plugin_record_for "$manifest") || return 1
   description=$(harto_plugin_record_value "$record" description || true)
-  printf '%s - %s\n' "$name" "$description"
-  printf '\nCommands:\n'
+  printf '%s - %s\n\n' "$(harto_paint 1 1 "$name")" "$(harto_paint 1 2 "$description")"
+  printf 'Commands:\n\n'
   harto_plugin_print_commands "$name" "$record"
 }
 

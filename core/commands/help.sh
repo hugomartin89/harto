@@ -47,7 +47,7 @@ EOF
 }
 
 harto_cmd_help() {
-  local file summary dir name record
+  local file summary dir name record previous
 
   [ $# -eq 0 ] || harto_die "unexpected arguments" 2
 
@@ -58,25 +58,30 @@ harto_cmd_help() {
 
   printf 'HARTO is a local development toolkit.\n\n'
   printf 'Usage: %s <command> [arguments]\n\n' "$HARTO_PROG"
-  printf 'Core commands:\n'
+  printf 'Core commands:\n\n'
   for file in "$HARTO_ROOT/core/commands"/*.sh; do
     [ -f "$file" ] || continue
     name=$(basename "$file" .sh)
     summary=$(harto_plugin_summary "$file")
-    printf '  %s\n    %s\n' "$name" "${summary:-}"
+    harto_help_entry "$name" "${summary:-}"
   done
 
   if ! harto_dep_yq_ok; then
-    printf '\nPlugin commands are hidden until yq (mikefarah) >= 4 is installed.\n'
+    printf 'Plugin commands are hidden until yq (mikefarah) >= 4 is installed.\n'
     return 0
   fi
 
-  printf '\nPlugin commands:\n'
+  printf 'Plugin commands:\n\n'
+  previous=""
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
     name=$(basename "$dir")
+    if [ -n "$previous" ]; then
+      printf '\n'
+    fi
+    previous=$name
     if ! harto_plugin_validate "$dir" >/dev/null 2>&1; then
-      printf '  %s\n    manifest is invalid\n' "$name"
+      harto_help_entry "$name" "manifest is invalid"
       continue
     fi
     record=$(harto_plugin_record_for "${dir}/config.yml")

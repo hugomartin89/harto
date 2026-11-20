@@ -11,6 +11,14 @@ harto_output_text_only() {
   fi
 }
 
+# One help row: a bold title, a dim detail, then a blank line.
+harto_help_entry() {
+  local title="$1"
+  local detail="$2"
+
+  printf '  %s\n    %s\n\n' "$(harto_paint 1 1 "$title")" "$(harto_paint 1 2 "$detail")"
+}
+
 # Reads key=value tokens from stdin. Values must not contain whitespace.
 # Lines without a key=value token are skipped. "array" makes one object per
 # line; "object" merges every line into one object.
