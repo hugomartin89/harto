@@ -151,18 +151,16 @@ harto_dep_check_core() {
 
 harto_dep_check_manifest() {
   local manifest="$1"
-  local count index required name command_name min_version hint url
+  local record line kind name command_name required min_version hint url
   local failed=0
 
-  count=$(yq eval '.dependencies // [] | length' "$manifest")
-  index=0
-  while [ "$index" -lt "$count" ]; do
-    required=$(yq eval ".dependencies[${index}].required" "$manifest")
-    name=$(yq eval ".dependencies[${index}].name" "$manifest")
-    command_name=$(yq eval ".dependencies[${index}].command" "$manifest")
-    min_version=$(yq eval ".dependencies[${index}].min_version // \"\"" "$manifest")
-    hint=$(yq eval ".dependencies[${index}].install_hint // \"\"" "$manifest")
-    url=$(yq eval ".dependencies[${index}].install_hint_url // \"\"" "$manifest")
+  record=$(harto_plugin_record_for "$manifest") || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = dep ] || continue
+    IFS=$'\037' read -r kind name command_name required min_version hint url <<EOF
+$line
+EOF
     if [ "$min_version" = "null" ]; then
       min_version=""
     fi
@@ -181,8 +179,9 @@ harto_dep_check_manifest() {
         harto_log_warn "install: ${hint}"
       fi
     fi
-    index=$((index + 1))
-  done
+  done <<EOF
+$record
+EOF
 
   return "$failed"
 }

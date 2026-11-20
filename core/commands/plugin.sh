@@ -72,7 +72,7 @@ harto_plugin_upgrade() {
 
   harto_upgrade_repo "$dir"
   harto_plugin_run_migrations "$name"
-  hook=$(yq eval '.hooks.upgrade // ""' "$manifest")
+  hook=$(harto_plugin_hook_path "$manifest" upgrade)
   if [ -n "$hook" ] && [ "$hook" != "null" ] && ! harto_is_dry_run; then
     harto_plugin_run "$name" "$hook"
   fi

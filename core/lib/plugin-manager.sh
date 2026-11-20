@@ -45,20 +45,201 @@ harto_plugin_path_safe() {
   printf '%s\n' "$rel" | grep -Eq '^[a-zA-Z0-9._/-]+$'
 }
 
-harto_plugin_validate() {
+# One yq read of a plugin manifest. Fields are separated by ASCII unit
+# separator so empty values stay empty. The result is reused for the rest of
+# this process.
+harto_plugin_read() {
+  local manifest="$1"
+  local us
+
+  [ -f "$manifest" ] || return 1
+  us=$(printf '\037')
+  US="$us" yq eval '
+    [
+      "name" + strenv(US) + (.name // ""),
+      "description" + strenv(US) + (.description // ""),
+      (.platforms // [] | .[] | "platform" + strenv(US) + .),
+      (.commands // [] | .[] | [
+        "command",
+        (.name // ""),
+        (.entrypoint // ""),
+        (.usage // ""),
+        (.usage | tag),
+        (.privileged | tag),
+        (.json | tag),
+        (.privileged // false | tostring),
+        (.json // false | tostring),
+        (.description // "")
+      ] | join(strenv(US))),
+      (.hooks // {} | to_entries[] | select(.value != null and .value != "") | "hook" + strenv(US) + .key + strenv(US) + (.value | tostring)),
+      (.dependencies // [] | .[] | [
+        "dep",
+        (.name // ""),
+        (.command // ""),
+        (.required // false | tostring),
+        (.min_version // ""),
+        (.install_hint // ""),
+        (.install_hint_url // "")
+      ] | join(strenv(US)))
+    ] | join("\n")
+  ' "$manifest" 2>/dev/null
+}
+
+harto_plugin_record_for() {
+  local manifest="$1"
+  local record
+
+  if [ "${_HARTO_PLUGIN_RECORD_FILE:-}" = "$manifest" ]; then
+    printf '%s\n' "$_HARTO_PLUGIN_RECORD"
+    return 0
+  fi
+  record=$(harto_plugin_read "$manifest") || return 1
+  _HARTO_PLUGIN_RECORD_FILE=$manifest
+  _HARTO_PLUGIN_RECORD=$record
+  printf '%s\n' "$record"
+}
+
+harto_plugin_record_value() {
+  local record="$1"
+  local key="$2"
+  local line kind value
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = "$key" ] || continue
+    value=${line#*$'\037'}
+    printf '%s\n' "$value"
+    return 0
+  done <<EOF
+$record
+EOF
+  return 1
+}
+
+harto_plugin_record_command() {
+  local record="$1"
+  local command_name="$2"
+  local field="$3"
+  local line kind cname entry usage utag ptag jtag pval jval desc
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = command ] || continue
+    IFS=$'\037' read -r kind cname entry usage utag ptag jtag pval jval desc <<EOF
+$line
+EOF
+    [ "$cname" = "$command_name" ] || continue
+    case "$field" in
+      entrypoint) printf '%s\n' "$entry" ;;
+      usage) printf '%s\n' "$usage" ;;
+      description) printf '%s\n' "$desc" ;;
+      json) printf '%s\n' "$jval" ;;
+      privileged) printf '%s\n' "$pval" ;;
+      *) return 1 ;;
+    esac
+    return 0
+  done <<EOF
+$record
+EOF
+  return 1
+}
+
+harto_plugin_record_hook() {
+  local record="$1"
+  local hook_name="$2"
+  local line kind hook path
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = hook ] || continue
+    IFS=$'\037' read -r kind hook path <<EOF
+$line
+EOF
+    [ "$hook" = "$hook_name" ] || continue
+    printf '%s\n' "$path"
+    return 0
+  done <<EOF
+$record
+EOF
+  return 1
+}
+
+harto_plugin_hook_path() {
+  local manifest="$1"
+  local hook_name="$2"
+  local record path
+
+  record=$(harto_plugin_record_for "$manifest") || return 1
+  if ! path=$(harto_plugin_record_hook "$record" "$hook_name"); then
+    printf '\n'
+    return 0
+  fi
+  printf '%s\n' "$path"
+}
+
+_harto_plugin_tag_ok() {
+  local manifest="$1"
+  local command_name="$2"
+  local field="$3"
+  local tag="$4"
+  local want="$5"
+
+  if [ "$tag" = "!!null" ] || [ "$tag" = "$want" ]; then
+    return 0
+  fi
+  harto_log_error "command ${command_name} in ${manifest} has an invalid ${field}"
+  return 1
+}
+
+_harto_plugin_check_command() {
   local dir="$1"
-  local manifest name description count index entry hook os listed
+  local manifest="$2"
+  local plugin_name="$3"
+  local line="$4"
+  local kind cname entry usage utag ptag jtag pval jval desc
   local failed=0
 
-  manifest="${dir}/config.yml"
-  if ! harto_yaml_valid "$manifest"; then
-    harto_log_error "invalid plugin manifest: ${manifest}"
+  IFS=$'\037' read -r kind cname entry usage utag ptag jtag pval jval desc <<EOF
+$line
+EOF
+  if ! harto_plugin_path_safe "$entry" || [ ! -f "${dir}/${entry}" ]; then
+    harto_log_error "plugin ${plugin_name} has an invalid command entrypoint: ${entry}"
+    failed=1
+  fi
+  _harto_plugin_tag_ok "$manifest" "$cname" usage "$utag" '!!str' || failed=1
+  _harto_plugin_tag_ok "$manifest" "$cname" privileged "$ptag" '!!bool' || failed=1
+  _harto_plugin_tag_ok "$manifest" "$cname" json "$jtag" '!!bool' || failed=1
+  return "$failed"
+}
+
+_harto_plugin_check_hook() {
+  local dir="$1"
+  local plugin_name="$2"
+  local line="$3"
+  local kind hook path
+
+  IFS=$'\037' read -r kind hook path <<EOF
+$line
+EOF
+  case "$hook" in
+    install|configure|doctor|upgrade|uninstall) ;;
+    *) return 0 ;;
+  esac
+  if ! harto_plugin_path_safe "$path" || [ ! -f "${dir}/${path}" ]; then
+    harto_log_error "plugin ${plugin_name} has an invalid ${hook} hook: ${path}"
     return 1
   fi
+}
 
-  name=$(yq eval '.name // ""' "$manifest")
-  description=$(yq eval '.description // ""' "$manifest")
+harto_plugin_check() {
+  local dir="$1"
+  local record="$2"
+  local manifest="${dir}/config.yml"
+  local failed=0
+  local name description platforms="" os line kind
 
+  name=$(harto_plugin_record_value "$record" name || true)
+  description=$(harto_plugin_record_value "$record" description || true)
   if [ "$(basename "$dir")" != "$name" ] || ! harto_plugin_validate_name "$name"; then
     harto_log_error "plugin name must match its directory and match ^[a-z][a-z0-9-]*$: ${dir}"
     failed=1
@@ -69,77 +250,114 @@ harto_plugin_validate() {
   fi
 
   os=$(harto_platform_os)
-  listed=$(yq eval '.platforms // [] | length' "$manifest")
-  if [ "$listed" -gt 0 ]; then
-    if ! OS="$os" yq eval '.platforms // [] | map(select(. == strenv(OS))) | .[0] // ""' "$manifest" | grep -qx "$os"; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ -n "$line" ] || continue
+    kind=${line%%$'\037'*}
+    case "$kind" in
+      platform) platforms="${platforms}${line#*$'\037'}"$'\n' ;;
+      command) _harto_plugin_check_command "$dir" "$manifest" "$name" "$line" || failed=1 ;;
+      hook) _harto_plugin_check_hook "$dir" "$name" "$line" || failed=1 ;;
+    esac
+  done <<EOF
+$record
+EOF
+
+  if [ -n "$platforms" ]; then
+    if ! printf '%s\n' "$platforms" | grep -qx "$os"; then
       harto_log_error "plugin ${name} does not support ${os}"
       failed=1
     fi
   fi
-
-  count=$(yq eval '.commands // [] | length' "$manifest")
-  index=0
-  while [ "$index" -lt "$count" ]; do
-    entry=$(yq eval ".commands[${index}].entrypoint // \"\"" "$manifest")
-    if ! harto_plugin_path_safe "$entry" || [ ! -f "${dir}/${entry}" ]; then
-      harto_log_error "plugin ${name} has an invalid command entrypoint: ${entry}"
-      failed=1
-    fi
-    _harto_plugin_field_tag "$manifest" "$index" usage '!!str' || failed=1
-    _harto_plugin_field_tag "$manifest" "$index" privileged '!!bool' || failed=1
-    _harto_plugin_field_tag "$manifest" "$index" json '!!bool' || failed=1
-    index=$((index + 1))
-  done
-
-  for hook in install configure doctor upgrade uninstall; do
-    entry=$(yq eval ".hooks.${hook} // \"\"" "$manifest")
-    if [ -z "$entry" ] || [ "$entry" = "null" ]; then
-      continue
-    fi
-    if ! harto_plugin_path_safe "$entry" || [ ! -f "${dir}/${entry}" ]; then
-      harto_log_error "plugin ${name} has an invalid ${hook} hook: ${entry}"
-      failed=1
-    fi
-  done
-
   return "$failed"
 }
 
-_harto_plugin_field_tag() {
-  local manifest="$1"
-  local index="$2"
-  local field="$3"
-  local want="$4"
-  local tag command_name
+harto_plugin_validate() {
+  local dir="$1"
+  local manifest record
 
-  tag=$(yq eval ".commands[${index}].${field} | tag" "$manifest")
-  if [ "$tag" = "!!null" ] || [ "$tag" = "$want" ]; then
-    return 0
+  manifest="${dir}/config.yml"
+  if ! record=$(harto_plugin_record_for "$manifest"); then
+    harto_log_error "invalid plugin manifest: ${manifest}"
+    return 1
   fi
-  command_name=$(yq eval ".commands[${index}].name" "$manifest")
-  harto_log_error "command ${command_name} in ${manifest} has an invalid ${field}"
-  return 1
+  harto_plugin_check "$dir" "$record"
 }
 
 harto_plugin_command_field() {
   local manifest="$1"
   local command_name="$2"
   local field="$3"
+  local record value
 
-  CMD="$command_name" yq eval ".commands[] | select(.name == strenv(CMD)) | .${field} // \"\"" "$manifest"
+  record=$(harto_plugin_record_for "$manifest") || return 1
+  value=$(harto_plugin_record_command "$record" "$command_name" "$field" || true)
+  printf '%s\n' "$value"
 }
 
-harto_plugin_command_line() {
+harto_plugin_print_commands() {
   local plugin="$1"
-  local manifest="$2"
-  local index="$3"
-  local command_name usage
+  local record="$2"
+  local line kind cname entry usage utag ptag jtag pval jval desc
 
-  command_name=$(yq eval ".commands[${index}].name" "$manifest")
-  usage=$(yq eval ".commands[${index}].usage // \"\"" "$manifest")
-  printf '  %s %s' "$plugin" "$command_name"
-  [ -z "$usage" ] || printf ' %s' "$usage"
-  printf '\n    %s\n' "$(yq eval ".commands[${index}].description" "$manifest")"
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = command ] || continue
+    IFS=$'\037' read -r kind cname entry usage utag ptag jtag pval jval desc <<EOF
+$line
+EOF
+    printf '  %s %s' "$plugin" "$cname"
+    [ -z "$usage" ] || printf ' %s' "$usage"
+    printf '\n    %s\n' "$desc"
+  done <<EOF
+$record
+EOF
+}
+
+_harto_json_string() {
+  local value="$1"
+
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '"%s"' "$value"
+}
+
+_harto_json_bool() {
+  case "$1" in
+    true|false) printf '%s' "$1" ;;
+    *) printf 'false' ;;
+  esac
+}
+
+harto_plugin_help_json() {
+  local record="$1"
+  local name description commands="" line kind
+  local cname entry usage utag ptag jtag pval jval desc entry_json
+
+  name=$(harto_plugin_record_value "$record" name || true)
+  description=$(harto_plugin_record_value "$record" description || true)
+  while IFS= read -r line || [ -n "$line" ]; do
+    kind=${line%%$'\037'*}
+    [ "$kind" = command ] || continue
+    IFS=$'\037' read -r kind cname entry usage utag ptag jtag pval jval desc <<EOF
+$line
+EOF
+    entry_json=$(printf '{"name":%s,"description":%s,"usage":%s,"privileged":%s,"json":%s}' \
+      "$(_harto_json_string "$cname")" \
+      "$(_harto_json_string "$desc")" \
+      "$(_harto_json_string "$usage")" \
+      "$(_harto_json_bool "$pval")" \
+      "$(_harto_json_bool "$jval")")
+    commands="${commands}${commands:+,}${entry_json}"
+  done <<EOF
+$record
+EOF
+  printf '{"name":%s,"description":%s,"commands":[%s]}' \
+    "$(_harto_json_string "$name")" \
+    "$(_harto_json_string "$description")" \
+    "$commands"
 }
 
 harto_plugin_command_entry() {
@@ -148,7 +366,7 @@ harto_plugin_command_entry() {
   local manifest entry
 
   manifest=$(harto_plugin_manifest "$name") || return 1
-  entry=$(CMD="$command_name" yq eval '.commands[] | select(.name == strenv(CMD)) | .entrypoint' "$manifest")
+  entry=$(harto_plugin_command_field "$manifest" "$command_name" entrypoint) || return 1
   if [ -z "$entry" ] || [ "$entry" = "null" ]; then
     return 1
   fi
@@ -196,7 +414,7 @@ harto_plugin_run() {
 harto_plugin_dispatch() {
   local name="$1"
   shift
-  local sub entry dir
+  local sub entry dir record
 
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
   harto_plugin_validate "$dir" || harto_die "plugin ${name} failed validation" 1
@@ -209,8 +427,12 @@ harto_plugin_dispatch() {
 
   sub="$1"
   shift
-  entry=$(harto_plugin_command_entry "$name" "$sub") || harto_die "unknown command: ${name} ${sub}" 2
-  if harto_output_is_json && [ "$(harto_plugin_command_field "${dir}/config.yml" "$sub" json)" != "true" ]; then
+  record=$(harto_plugin_record_for "${dir}/config.yml") || harto_die "plugin ${name} failed validation" 1
+  entry=$(harto_plugin_record_command "$record" "$sub" entrypoint) || harto_die "unknown command: ${name} ${sub}" 2
+  if [ -z "$entry" ] || [ "$entry" = "null" ]; then
+    harto_die "unknown command: ${name} ${sub}" 2
+  fi
+  if harto_output_is_json && [ "$(harto_plugin_record_command "$record" "$sub" json || true)" != "true" ]; then
     harto_die "${name} ${sub} does not support --json" 2
   fi
   harto_plugin_run "$name" "$entry" "$@"
@@ -218,18 +440,14 @@ harto_plugin_dispatch() {
 
 harto_plugin_print_help() {
   local name="$1"
-  local manifest count index description
+  local manifest record description
 
   manifest=$(harto_plugin_manifest "$name") || return 1
-  description=$(yq eval '.description // ""' "$manifest")
+  record=$(harto_plugin_record_for "$manifest") || return 1
+  description=$(harto_plugin_record_value "$record" description || true)
   printf '%s - %s\n' "$name" "$description"
   printf '\nCommands:\n'
-  count=$(yq eval '.commands // [] | length' "$manifest")
-  index=0
-  while [ "$index" -lt "$count" ]; do
-    harto_plugin_command_line "$name" "$manifest" "$index"
-    index=$((index + 1))
-  done
+  harto_plugin_print_commands "$name" "$record"
 }
 
 harto_plugin_run_migrations() {
@@ -310,7 +528,7 @@ harto_plugin_enable() {
     return 0
   fi
 
-  hook=$(yq eval '.hooks.install // ""' "$manifest")
+  hook=$(harto_plugin_hook_path "$manifest" install)
   if [ -n "$hook" ] && [ "$hook" != "null" ]; then
     harto_plugin_run "$name" "$hook"
   fi
@@ -338,7 +556,7 @@ harto_plugin_disable() {
   name="$1"
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
   manifest="${dir}/config.yml"
-  hook=$(yq eval '.hooks.uninstall // ""' "$manifest")
+  hook=$(harto_plugin_hook_path "$manifest" uninstall)
 
   if harto_is_dry_run; then
     printf '[dry-run] would disable plugin %s\n' "$name" >&2
@@ -378,7 +596,7 @@ harto_plugin_cmd_list() {
       printf '%s\tinvalid\tmanifest validation failed\n' "$name"
       continue
     fi
-    description=$(yq eval '.description' "${dir}/config.yml")
+    description=$(harto_plugin_record_value "$(harto_plugin_record_for "${dir}/config.yml")" description || true)
     if harto_state_plugin_active "$name"; then
       installed="yes"
     else
@@ -418,7 +636,7 @@ harto_plugin_doctor_one() {
   manifest="${dir}/config.yml"
   dep_status=0
   harto_dep_check_manifest "$manifest" >/dev/null 2>&1 || dep_status=1
-  hook=$(yq eval '.hooks.doctor // ""' "$manifest")
+  hook=$(harto_plugin_hook_path "$manifest" doctor)
   if [ -n "$hook" ] && [ "$hook" != "null" ]; then
     harto_plugin_run "$name" "$hook" || true
   fi

@@ -37,17 +37,7 @@ _harto_help_json() {
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
     harto_plugin_validate "$dir" >/dev/null 2>&1 || continue
-    entry=$(yq eval -o=json -I=0 '{
-      "name": .name,
-      "description": .description,
-      "commands": [(.commands // [])[] | {
-        "name": .name,
-        "description": .description,
-        "usage": (.usage // ""),
-        "privileged": (.privileged // false),
-        "json": (.json // false)
-      }]
-    }' "${dir}/config.yml")
+    entry=$(harto_plugin_help_json "$(harto_plugin_record_for "${dir}/config.yml")")
     plugins="${plugins}${plugins:+,}${entry}"
   done <<EOF
 $(_harto_help_plugin_dirs)
@@ -57,7 +47,7 @@ EOF
 }
 
 harto_cmd_help() {
-  local file summary dir name count index
+  local file summary dir name record
 
   [ $# -eq 0 ] || harto_die "unexpected arguments" 2
 
@@ -89,12 +79,8 @@ harto_cmd_help() {
       printf '  %s\n    manifest is invalid\n' "$name"
       continue
     fi
-    count=$(yq eval '.commands // [] | length' "${dir}/config.yml")
-    index=0
-    while [ "$index" -lt "$count" ]; do
-      harto_plugin_command_line "$name" "${dir}/config.yml" "$index"
-      index=$((index + 1))
-    done
+    record=$(harto_plugin_record_for "${dir}/config.yml")
+    harto_plugin_print_commands "$name" "$record"
   done <<EOF
 $(_harto_help_plugin_dirs)
 EOF
