@@ -483,3 +483,37 @@ EOF
   [ "$status" -eq 0 ]
   [ ! -e "$KEY_FILE" ]
 }
+
+@test "completion offers projects, environments, and variable names" {
+  cd "$BLOG"
+  hl init blog
+  hl set local PORT 3000
+  run "$(harto_bin)" --non-interactive completion query -- 2 localenv set ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--project"* ]]
+  [[ "$output" == *"local"* ]]
+  [[ "$output" != *"3000"* ]]
+
+  run "$(harto_bin)" --non-interactive completion query -- 3 localenv set local ""
+  [ "$status" -eq 0 ]
+  [ "$output" = "PORT" ]
+
+  run "$(harto_bin)" --non-interactive completion query -- 4 localenv set local PORT ""
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+
+  cd "$WORK"
+  run "$(harto_bin)" --non-interactive completion query -- 3 localenv set --project ""
+  [ "$status" -eq 0 ]
+  [ "$output" = "blog" ]
+
+  run "$(harto_bin)" --non-interactive completion query -- 2 localenv init ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--plain"* ]]
+  [[ "$output" == *"--encrypt"* ]]
+  [[ "$output" != *"blog"* ]]
+
+  run "$(harto_bin)" --non-interactive completion query -- 3 localenv import local ""
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
