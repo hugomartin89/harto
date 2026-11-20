@@ -8,11 +8,11 @@ harto_plugin_dir() {
   local name="$1"
 
   harto_plugin_validate_name "$name" || return 1
-  if [ -f "$HARTO_ROOT/plugins/${name}/plugin.yml" ]; then
+  if [ -f "$HARTO_ROOT/plugins/${name}/config.yml" ]; then
     printf '%s\n' "$HARTO_ROOT/plugins/${name}"
     return 0
   fi
-  if [ -f "${HARTO_DATA_DIR}/plugins/${name}/plugin.yml" ]; then
+  if [ -f "${HARTO_DATA_DIR}/plugins/${name}/config.yml" ]; then
     printf '%s\n' "${HARTO_DATA_DIR}/plugins/${name}"
     return 0
   fi
@@ -22,7 +22,7 @@ harto_plugin_dir() {
 harto_plugin_manifest() {
   local dir
   dir=$(harto_plugin_dir "$1") || return 1
-  printf '%s/plugin.yml\n' "$dir"
+  printf '%s/config.yml\n' "$dir"
 }
 
 harto_plugin_each_dir() {
@@ -31,7 +31,7 @@ harto_plugin_each_dir() {
     [ -d "$root" ] || continue
     for dir in "$root"/*; do
       [ -d "$dir" ] || continue
-      [ -f "$dir/plugin.yml" ] || continue
+      [ -f "$dir/config.yml" ] || continue
       printf '%s\n' "$dir"
     done
   done
@@ -50,7 +50,7 @@ harto_plugin_validate() {
   local manifest name description count index entry hook os listed
   local failed=0
 
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   if ! harto_yaml_valid "$manifest"; then
     harto_log_error "invalid plugin manifest: ${manifest}"
     return 1
@@ -210,7 +210,7 @@ harto_plugin_dispatch() {
   sub="$1"
   shift
   entry=$(harto_plugin_command_entry "$name" "$sub") || harto_die "unknown command: ${name} ${sub}" 2
-  if harto_output_is_json && [ "$(harto_plugin_command_field "${dir}/plugin.yml" "$sub" json)" != "true" ]; then
+  if harto_output_is_json && [ "$(harto_plugin_command_field "${dir}/config.yml" "$sub" json)" != "true" ]; then
     harto_die "${name} ${sub} does not support --json" 2
   fi
   harto_plugin_run "$name" "$entry" "$@"
@@ -268,7 +268,7 @@ harto_plugin_in_repository() {
   local name="$1"
 
   harto_plugin_validate_name "$name" || return 1
-  [ -f "$HARTO_ROOT/plugins/${name}/plugin.yml" ]
+  [ -f "$HARTO_ROOT/plugins/${name}/config.yml" ]
 }
 
 harto_plugin_setup_command() {
@@ -296,7 +296,7 @@ harto_plugin_enable() {
   fi
   dir="$HARTO_ROOT/plugins/${name}"
   harto_plugin_validate "$dir" || return 1
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   harto_dep_check_manifest "$manifest" || return 1
 
   if harto_state_plugin_active "$name"; then
@@ -337,7 +337,7 @@ harto_plugin_disable() {
   [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin disable <name>" 2
   name="$1"
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   hook=$(yq eval '.hooks.uninstall // ""' "$manifest")
 
   if harto_is_dry_run; then
@@ -378,7 +378,7 @@ harto_plugin_cmd_list() {
       printf '%s\tinvalid\tmanifest validation failed\n' "$name"
       continue
     fi
-    description=$(yq eval '.description' "${dir}/plugin.yml")
+    description=$(yq eval '.description' "${dir}/config.yml")
     if harto_state_plugin_active "$name"; then
       installed="yes"
     else
@@ -397,7 +397,7 @@ harto_plugin_cmd_info() {
   [ $# -eq 1 ] || harto_die "usage: ${HARTO_PROG} plugin info <name>" 2
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
   harto_plugin_validate "$dir" || return 1
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   yq eval '.' "$manifest"
   printf '\nDependency status:\n'
   harto_dep_check_manifest "$manifest" || true
@@ -415,7 +415,7 @@ harto_plugin_doctor_one() {
     harto_log_warn "plugin ${name} failed validation"
     return 0
   fi
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   dep_status=0
   harto_dep_check_manifest "$manifest" >/dev/null 2>&1 || dep_status=1
   hook=$(yq eval '.hooks.doctor // ""' "$manifest")

@@ -14,7 +14,7 @@ catalog() {
 broken_plugin() {
   mkdir -p "${XDG_DATA_HOME}/harto/plugins/broken/commands"
   printf '#!/usr/bin/env bash\nexit 0\n' > "${XDG_DATA_HOME}/harto/plugins/broken/commands/run.sh"
-  cat > "${XDG_DATA_HOME}/harto/plugins/broken/plugin.yml" <<'EOF'
+  cat > "${XDG_DATA_HOME}/harto/plugins/broken/config.yml" <<'EOF'
 name: broken
 description: privileged is not a boolean
 platforms:

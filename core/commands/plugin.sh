@@ -63,7 +63,7 @@ harto_plugin_upgrade() {
   harto_dep_check_core || return 1
   dir=$(harto_plugin_dir "$name") || harto_die "plugin not found: ${name}" 1
   harto_plugin_validate "$dir" || return 1
-  manifest="${dir}/plugin.yml"
+  manifest="${dir}/config.yml"
   harto_dep_check_manifest "$manifest" || return 1
 
   if ! harto_state_plugin_active "$name"; then

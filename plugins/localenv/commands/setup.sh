@@ -8,7 +8,7 @@ set -euo pipefail
 [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} localenv setup" 2
 
 harto_dep_check_core || exit 1
-harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || exit 1
+harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || exit 1
 
 if harto_is_dry_run; then
   printf '[dry-run] would create the localenv project index and Keychain key\n' >&2

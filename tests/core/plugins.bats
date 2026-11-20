@@ -40,7 +40,7 @@ setup() {
 
 @test "an invalid manifest is rejected" {
   mkdir -p "${XDG_DATA_HOME}/harto/plugins/evil"
-  cat > "${XDG_DATA_HOME}/harto/plugins/evil/plugin.yml" <<'EOF'
+  cat > "${XDG_DATA_HOME}/harto/plugins/evil/config.yml" <<'EOF'
 name: evil
 description: broken entry
 platforms:

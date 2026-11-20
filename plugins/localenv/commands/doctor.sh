@@ -7,7 +7,7 @@ set -euo pipefail
 
 [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} localenv doctor" 2
 
-harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || true
+harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || true
 
 index=$(harto_localenv_index_file)
 if [ ! -f "$index" ]; then

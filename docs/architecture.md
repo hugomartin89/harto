@@ -10,7 +10,7 @@ core/cli.sh                dispatch only
 core/commands/*.sh         one core command per file
 core/lib/*.sh              shared infrastructure
 plugins/<name>/            one removable plugin
-  plugin.yml
+  config.yml
   README.md
   docs/
   commands/<cmd>.sh
@@ -27,7 +27,7 @@ skills/<name>/SKILL.md     one agent procedure per directory
 ## Adding something
 
 - A core command is a new file in `core/commands/`. The first summary line is `# harto-summary: ...`. Do not edit `core/cli.sh`.
-- A plugin command is a new file in `plugins/<name>/commands/` and one entry in that plugin's `plugin.yml`.
+- A plugin command is a new file in `plugins/<name>/commands/` and one entry in that plugin's `config.yml`.
 - A plugin is a new directory with a valid manifest and its own `README.md`. There is no central list of plugins.
 - A replaceable external tool belongs to the plugin, as its own file with a small set of functions. Do not add a provider registry for a single implementation.
 

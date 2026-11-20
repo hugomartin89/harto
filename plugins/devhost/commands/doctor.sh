@@ -9,11 +9,11 @@ set -euo pipefail
 
 if ! harto_devhost_configured; then
   printf 'warn: devhost is not configured\n'
-  harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || true
+  harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || true
   exit 0
 fi
 
-harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || true
+harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || true
 printf 'base_domain=%s\n' "$(harto_devhost_get base_domain)"
 harto_proxy_status || true
 harto_dns_status || true

@@ -24,7 +24,7 @@ answer() {
 }
 
 harto_dep_check_core || exit 1
-harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || exit 1
+harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || exit 1
 
 if [ -n "${HARTO_DEVHOST_DOMAIN+x}" ]; then
   domain=$(answer "$HARTO_DEVHOST_DOMAIN" yes "" "")

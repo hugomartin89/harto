@@ -55,7 +55,7 @@ harto_upgrade_installed_plugins() {
     fi
     harto_plugin_validate "$dir"
     harto_plugin_run_migrations "$name"
-    manifest="${dir}/plugin.yml"
+    manifest="${dir}/config.yml"
     hook=$(yq eval '.hooks.upgrade // ""' "$manifest")
     if [ -n "$hook" ] && [ "$hook" != "null" ] && ! harto_is_dry_run; then
       harto_plugin_run "$name" "$hook"

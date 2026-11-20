@@ -7,7 +7,7 @@ set -euo pipefail
 
 [ $# -eq 0 ] || harto_die "usage: ${HARTO_PROG} rds doctor" 2
 
-harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/plugin.yml" || true
+harto_dep_check_manifest "${HARTO_PLUGIN_DIR}/config.yml" || true
 printf 'vpn=required\n'
 harto_log_info "The VPN must be running before a connection can reach the database."
 

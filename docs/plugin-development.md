@@ -1,6 +1,6 @@
 # Plugin development
 
-A plugin is a directory named with `^[a-z][a-z0-9-]*$` and a `plugin.yml` file. HARTO reads bundled plugins from `plugins/` and user plugins from `$HARTO_DATA_DIR/plugins`. A bundled plugin wins when both exist.
+A plugin is a directory named with `^[a-z][a-z0-9-]*$` and a `config.yml` file. HARTO reads bundled plugins from `plugins/` and user plugins from `$HARTO_DATA_DIR/plugins`. A bundled plugin wins when both exist.
 
 ## Manifest
 

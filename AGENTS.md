@@ -5,7 +5,7 @@ HARTO is a small macOS CLI.
 Read [docs/architecture.md](docs/architecture.md) before adding a command, a plugin, or an adapter. Short form:
 
 - A core command is a new file in `core/commands/`. Do not edit `core/cli.sh` to register it.
-- A plugin command is a new file in `plugins/<name>/commands/` plus an entry in that plugin's `plugin.yml`.
+- A plugin command is a new file in `plugins/<name>/commands/` plus an entry in that plugin's `config.yml`.
 - A new plugin is a new directory under `plugins/` with a manifest. There is no central registry.
 - A replaceable external tool is a new file that defines the same functions as the current adapter. Do not add a provider framework for a single implementation.
 - `core/` must not mention a plugin by name. A plugin sources only `$HARTO_LIB`.

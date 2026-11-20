@@ -47,7 +47,7 @@ _harto_help_json() {
         "privileged": (.privileged // false),
         "json": (.json // false)
       }]
-    }' "${dir}/plugin.yml")
+    }' "${dir}/config.yml")
     plugins="${plugins}${plugins:+,}${entry}"
   done <<EOF
 $(_harto_help_plugin_dirs)
@@ -89,10 +89,10 @@ harto_cmd_help() {
       printf '  %s\n    manifest is invalid\n' "$name"
       continue
     fi
-    count=$(yq eval '.commands // [] | length' "${dir}/plugin.yml")
+    count=$(yq eval '.commands // [] | length' "${dir}/config.yml")
     index=0
     while [ "$index" -lt "$count" ]; do
-      harto_plugin_command_line "$name" "${dir}/plugin.yml" "$index"
+      harto_plugin_command_line "$name" "${dir}/config.yml" "$index"
       index=$((index + 1))
     done
   done <<EOF
